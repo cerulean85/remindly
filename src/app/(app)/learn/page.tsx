@@ -1,0 +1,147 @@
+"use client"
+
+import { useState } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { useFlashcard } from "@/hooks/useFlashcard"
+import { FlashCard } from "@/components/flashcard/FlashCard"
+import { LearningControls } from "@/components/flashcard/LearningControls"
+import { InputModeCard } from "@/components/flashcard/InputModeCard"
+import { FlashcardSkeleton } from "@/components/ui/Skeleton"
+import { Button } from "@/components/ui/Button"
+import { cn } from "@/lib/utils"
+import type { Category, Problem } from "@/types"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
+
+type LearnMode = "flashcard" | "input"
+
+function ProgressBar({ index, total }: { index: number; total: number }) {
+  return (
+    <div className="flex items-center gap-4 text-sm text-gray-500">
+      <span>{index + 1} / {total}</span>
+      <div className="h-1.5 flex-1 rounded-full bg-gray-200 dark:bg-gray-800">
+        <div
+          className="h-full rounded-full bg-indigo-500 transition-all"
+          style={{ width: `${(index / total) * 100}%` }}
+        />
+      </div>
+    </div>
+  )
+}
+
+function LearnSession({ problems, mode }: { problems: Problem[]; mode: LearnMode }) {
+  const { t } = useTranslation()
+  const { current, index, total, isFlipped, isComplete, flip, next, markHint, restart } = useFlashcard(problems)
+
+  if (total === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center text-gray-500">
+        <p className="text-3xl mb-3">📚</p>
+        <p className="font-medium">{t("learn.noProblems")}</p>
+        <p className="text-sm mt-1">{t("learn.addProblems")}</p>
+      </div>
+    )
+  }
+
+  if (isComplete) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <p className="text-3xl mb-3">🎉</p>
+        <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">{t("learn.complete")}</p>
+        <p className="text-sm text-gray-500 mb-6">{t("learn.completeMessage")}</p>
+        <Button onClick={restart}>다시 시작</Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <ProgressBar index={index} total={total} />
+
+      {current && mode === "flashcard" && (
+        <>
+          <FlashCard problem={current} isFlipped={isFlipped} onClick={flip} />
+          <LearningControls
+            isFlipped={isFlipped}
+            onFlip={flip}
+            onSkip={() => next("skip")}
+            onHint={() => { markHint(); flip() }}
+            onKnow={() => next("know")}
+          />
+        </>
+      )}
+
+      {current && mode === "input" && (
+        <InputModeCard
+          key={current.id}
+          problem={current}
+          onCorrect={() => next("know")}
+          onWrong={() => next("skip")}
+          onSkip={() => next("skip")}
+        />
+      )}
+    </div>
+  )
+}
+
+export default function LearnPage() {
+  const { t } = useTranslation()
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("")
+  const [mode, setMode] = useState<LearnMode>("flashcard")
+
+  const { data: categories } = useQuery<Category[]>({
+    queryKey: ["categories"],
+    queryFn: () => fetch("/api/categories").then((r) => r.json()),
+  })
+
+  const { data: problems, isLoading } = useQuery<Problem[]>({
+    queryKey: ["problems", selectedCategoryId],
+    queryFn: () =>
+      fetch(`/api/problems${selectedCategoryId ? `?categoryId=${selectedCategoryId}` : ""}`).then((r) => r.json()),
+  })
+
+  return (
+    <div className="mx-auto max-w-lg px-4 py-6">
+      <div className="mb-4 flex items-center gap-3">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t("learn.title")}</h1>
+        <div className="ml-auto">
+          <select
+            value={selectedCategoryId}
+            onChange={(e) => setSelectedCategoryId(e.target.value)}
+            className="rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm outline-none"
+          >
+            <option value="">{t("learn.allMode")}</option>
+            {categories?.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}{cat._count !== undefined ? ` (${cat._count.problems})` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="mb-6 flex rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+        {(["flashcard", "input"] as LearnMode[]).map((m) => (
+          <button
+            key={m}
+            onClick={() => setMode(m)}
+            className={cn(
+              "flex-1 py-2 text-sm font-medium transition-colors",
+              mode === m
+                ? "bg-indigo-500 text-white"
+                : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+            )}
+          >
+            {m === "flashcard" ? t("learn.modeFlashcard") : t("learn.modeInput")}
+          </button>
+        ))}
+      </div>
+
+      {isLoading ? (
+        <FlashcardSkeleton />
+      ) : (
+        <LearnSession key={mode} problems={problems ?? []} mode={mode} />
+      )}
+    </div>
+  )
+}

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(npm run *)"
+    ],
+    "additionalDirectories": [
+      "/Users/zhkim/Desktop/git/remindly/src/app/api/auth",
+      "/Users/zhkim/Desktop/git/remindly/src/app/api/categories/[id]"
+    ]
+  }
+}

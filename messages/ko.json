@@ -1,0 +1,97 @@
+{
+  "nav": {
+    "learn": "학습하기",
+    "mistakes": "오답노트",
+    "problems": "문제 관리",
+    "settings": "설정"
+  },
+  "learn": {
+    "title": "학습하기",
+    "flip": "정답 보기",
+    "skip": "넘기기",
+    "hint": "힌트 보기",
+    "know": "알고 있어요",
+    "noProblems": "등록된 문제가 없습니다.",
+    "addProblems": "문제를 먼저 등록해주세요.",
+    "allMode": "전체",
+    "complete": "학습 완료!",
+    "completeMessage": "모든 문제를 완료했습니다.",
+    "modeFlashcard": "플래시카드",
+    "modeInput": "직접 입력",
+    "yourAnswer": "내 답변",
+    "yourAnswerPlaceholder": "정답을 입력하세요",
+    "checkAnswer": "확인",
+    "correctAnswer": "정답",
+    "markCorrect": "맞았어요",
+    "markWrong": "틀렸어요"
+  },
+  "problems": {
+    "title": "문제 관리",
+    "add": "문제 추가",
+    "edit": "문제 수정",
+    "delete": "문제 삭제",
+    "deleteConfirm": "이 문제를 삭제하시겠습니까?",
+    "question": "문제",
+    "answer": "정답",
+    "keywords": "관련 키워드",
+    "keywordsPlaceholder": "키워드 입력 후 Enter 또는 쉼표",
+    "category": "카테고리",
+    "noCategory": "카테고리 없음",
+    "save": "저장",
+    "cancel": "취소",
+    "noProblems": "등록된 문제가 없습니다.",
+    "allCategories": "전체",
+    "memo": "메모",
+    "memoPlaceholder": "자료 조사나 생각을 자유롭게 입력하세요"
+  },
+  "mistakes": {
+    "title": "오답노트",
+    "skipCount": "넘긴 횟수",
+    "hintCount": "힌트 본 횟수",
+    "noMistakes": "아직 오답이 없습니다.",
+    "noMistakesMessage": "학습을 시작하면 자동으로 기록됩니다."
+  },
+  "categories": {
+    "title": "카테고리",
+    "add": "카테고리 추가",
+    "edit": "카테고리 수정",
+    "delete": "카테고리 삭제",
+    "deleteConfirm": "이 카테고리를 삭제하시겠습니까?",
+    "name": "이름",
+    "color": "색상",
+    "save": "저장",
+    "cancel": "취소",
+    "noCategories": "카테고리가 없습니다."
+  },
+  "settings": {
+    "title": "설정",
+    "theme": "테마",
+    "themeLight": "라이트",
+    "themeDark": "다크",
+    "themeSystem": "시스템",
+    "language": "언어",
+    "account": "계정",
+    "logout": "로그아웃",
+    "deleteAccount": "계정 삭제",
+    "deleteAccountConfirm": "계정을 삭제하면 모든 데이터가 영구적으로 삭제됩니다. 계속하시겠습니까?",
+    "terms": "이용약관",
+    "privacy": "개인정보처리방침",
+    "copyright": "© 2026 DycDyp. All rights reserved."
+  },
+  "auth": {
+    "login": "로그인",
+    "loginWithGoogle": "Google로 로그인",
+    "loginDescription": "학습 파트너 Remindly에 오신 것을 환영합니다."
+  },
+  "common": {
+    "loading": "로딩 중...",
+    "error": "오류가 발생했습니다.",
+    "save": "저장",
+    "cancel": "취소",
+    "delete": "삭제",
+    "edit": "수정",
+    "add": "추가",
+    "confirm": "확인",
+    "close": "닫기"
+  }
+}
