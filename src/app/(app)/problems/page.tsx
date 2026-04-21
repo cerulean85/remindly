@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button"
 import { Modal } from "@/components/ui/Modal"
 import { ConfirmModal } from "@/components/ui/Modal"
 import { ProblemForm } from "@/components/problems/ProblemForm"
+import { ProblemDetailSheet } from "@/components/problems/ProblemDetailSheet"
 import { CategoryBadge } from "@/components/categories/CategoryBadge"
 import { Badge } from "@/components/ui/Badge"
 import { ProblemsPageSkeleton } from "@/components/ui/Skeleton"
@@ -17,24 +18,21 @@ import "@/lib/i18n"
 
 function ProblemCard({
   problem,
-  categories,
+  onDetail,
   onEdit,
   onDelete,
 }: {
   problem: Problem
-  categories: Category[]
+  onDetail: (p: Problem) => void
   onEdit: (p: Problem) => void
   onDelete: (p: Problem) => void
 }) {
-  const [revealed, setRevealed] = useState(false)
-  const swipe = useSwipe(() => setRevealed(true), () => setRevealed(false))
-
   return (
-    <div
-      className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm"
-      {...swipe}
-    >
-      <div className="p-4 pb-3">
+    <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
+      <button
+        className="w-full text-left p-4 pb-3 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors"
+        onClick={() => onDetail(problem)}
+      >
         <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">{problem.question}</p>
         <p className="text-xs text-gray-500 line-clamp-2">{problem.answer}</p>
         {problem.keywords.length > 0 && (
@@ -47,7 +45,7 @@ function ProblemCard({
             )}
           </div>
         )}
-      </div>
+      </button>
 
       <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 dark:border-gray-800">
         <CategoryBadge category={problem.category} />
@@ -74,6 +72,7 @@ export default function ProblemsPage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [showAdd, setShowAdd] = useState(false)
+  const [detailTarget, setDetailTarget] = useState<Problem | null>(null)
   const [editTarget, setEditTarget] = useState<Problem | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Problem | null>(null)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
@@ -182,7 +181,7 @@ export default function ProblemsPage() {
             <ProblemCard
               key={p.id}
               problem={p}
-              categories={categories}
+              onDetail={setDetailTarget}
               onEdit={setEditTarget}
               onDelete={setDeleteTarget}
             />
@@ -217,6 +216,13 @@ export default function ProblemsPage() {
         onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
         title={t("problems.delete")}
         description={t("problems.deleteConfirm")}
+      />
+
+      <ProblemDetailSheet
+        problem={detailTarget}
+        onClose={() => setDetailTarget(null)}
+        onEdit={setEditTarget}
+        onDelete={setDeleteTarget}
       />
     </div>
   )
