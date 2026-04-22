@@ -86,7 +86,7 @@ export function FlashcardSkeleton() {
         <Skeleton className="h-3 w-10" />
         <Skeleton className="h-1.5 flex-1 rounded-full" />
       </div>
-      <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm p-6" style={{ height: "320px" }}>
+      <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm p-6 min-h-[200px]">
         <div className="flex justify-between mb-4">
           <Skeleton className="h-5 w-16 rounded-full" />
           <Skeleton className="h-3 w-24" />
