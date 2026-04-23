@@ -26,3 +26,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pr
   })
   return NextResponse.json(note)
 }
+
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ problemId: string }> }) {
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const userId = session.user.id
+  const { problemId } = await params
+
+  const note = await prisma.mistakeNote.findFirst({ where: { problemId, userId } })
+  if (!note) return NextResponse.json({ error: "Not found" }, { status: 404 })
+
+  await prisma.mistakeNote.delete({ where: { id: note.id } })
+  return NextResponse.json({ success: true })
+}

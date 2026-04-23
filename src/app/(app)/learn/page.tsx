@@ -31,7 +31,7 @@ function ProgressBar({ index, total }: { index: number; total: number }) {
 
 function LearnSession({ problems, mode }: { problems: Problem[]; mode: LearnMode }) {
   const { t } = useTranslation()
-  const { current, index, total, isFlipped, isComplete, flip, next, markHint, restart } = useFlashcard(problems)
+  const { current, index, total, isFlipped, isComplete, flip, next, prev, markHint, restart } = useFlashcard(problems)
 
   if (total === 0) {
     return (
@@ -63,8 +63,11 @@ function LearnSession({ problems, mode }: { problems: Problem[]; mode: LearnMode
           <FlashCard problem={current} isFlipped={isFlipped} onClick={flip} />
           <LearningControls
             isFlipped={isFlipped}
+            hasPrev={index > 0}
+            onPrev={prev}
             onFlip={flip}
-            onSkip={() => next("skip")}
+            onSkip={() => next("know")}
+            onMarkWrong={() => next("skip")}
             onHint={() => { markHint(); flip() }}
             onKnow={() => next("know")}
           />

@@ -9,6 +9,7 @@
     "title": "학습하기",
     "flip": "정답 보기",
     "skip": "넘기기",
+    "markWrong": "오답 기록",
     "hint": "힌트 보기",
     "know": "알고 있어요",
     "noProblems": "등록된 문제가 없습니다.",
@@ -49,7 +50,10 @@
     "skipCount": "넘긴 횟수",
     "hintCount": "힌트 본 횟수",
     "noMistakes": "아직 오답이 없습니다.",
-    "noMistakesMessage": "학습을 시작하면 자동으로 기록됩니다."
+    "noMistakesMessage": "학습을 시작하면 자동으로 기록됩니다.",
+    "delete": "삭제",
+    "deleteConfirm": "오답노트에서 이 항목을 삭제하시겠습니까?",
+    "cancel": "취소"
   },
   "categories": {
     "title": "카테고리",

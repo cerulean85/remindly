@@ -6,19 +6,28 @@ import "@/lib/i18n"
 
 interface LearningControlsProps {
   isFlipped: boolean
+  hasPrev: boolean
+  onPrev: () => void
   onFlip: () => void
   onSkip: () => void
+  onMarkWrong: () => void
   onHint: () => void
   onKnow: () => void
 }
 
-export function LearningControls({ isFlipped, onFlip, onSkip, onHint, onKnow }: LearningControlsProps) {
+export function LearningControls({ isFlipped, hasPrev, onPrev, onFlip, onSkip, onMarkWrong, onHint, onKnow }: LearningControlsProps) {
   const { t } = useTranslation()
 
   return (
     <div className="flex flex-col gap-3">
       {!isFlipped ? (
-        <div className="flex gap-3">
+        <div className="flex gap-2">
+          <Button variant="secondary" className="px-3" onClick={onPrev} disabled={!hasPrev}>
+            ←
+          </Button>
+          <Button variant="secondary" className="flex-1" onClick={onMarkWrong}>
+            {t("learn.markWrong")}
+          </Button>
           <Button variant="secondary" className="flex-1" onClick={onSkip}>
             {t("learn.skip")}
           </Button>
@@ -30,7 +39,13 @@ export function LearningControls({ isFlipped, onFlip, onSkip, onHint, onKnow }: 
           </Button>
         </div>
       ) : (
-        <div className="flex gap-3">
+        <div className="flex gap-2">
+          <Button variant="secondary" className="px-3" onClick={onPrev}>
+            ←
+          </Button>
+          <Button variant="secondary" className="flex-1" onClick={onMarkWrong}>
+            {t("learn.markWrong")}
+          </Button>
           <Button variant="secondary" className="flex-1" onClick={onSkip}>
             {t("learn.skip")}
           </Button>

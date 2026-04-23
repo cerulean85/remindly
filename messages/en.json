@@ -9,6 +9,7 @@
     "title": "Learn",
     "flip": "Show Answer",
     "skip": "Skip",
+    "markWrong": "Mark Wrong",
     "hint": "Show Hint",
     "know": "I Know This",
     "noProblems": "No problems registered.",
@@ -49,7 +50,10 @@
     "skipCount": "Times Skipped",
     "hintCount": "Times Hinted",
     "noMistakes": "No mistakes yet.",
-    "noMistakesMessage": "Start learning and mistakes will be recorded automatically."
+    "noMistakesMessage": "Start learning and mistakes will be recorded automatically.",
+    "delete": "Delete",
+    "deleteConfirm": "Remove this item from your mistake notes?",
+    "cancel": "Cancel"
   },
   "categories": {
     "title": "Categories",

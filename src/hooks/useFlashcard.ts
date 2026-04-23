@@ -31,7 +31,7 @@ export function useFlashcard(problems: Problem[]) {
 
   const next = useCallback(
     async (action?: "skip" | "know") => {
-      if (current && action === "skip" && !flippedRef.current) {
+      if (current && action === "skip") {
         fetch(`/api/mistakes/${current.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -54,6 +54,12 @@ export function useFlashcard(problems: Problem[]) {
     }).catch(() => {})
   }, [current])
 
+  const prev = useCallback(() => {
+    setIsFlipped(false)
+    flippedRef.current = false
+    setIndex((i) => Math.max(0, i - 1))
+  }, [])
+
   const restart = useCallback(() => {
     setDeck(shuffle(problems))
     setIndex(0)
@@ -61,5 +67,5 @@ export function useFlashcard(problems: Problem[]) {
     flippedRef.current = false
   }, [problems])
 
-  return { current, index, total: deck.length, isFlipped, isComplete, flip, next, markHint, restart }
+  return { current, index, total: deck.length, isFlipped, isComplete, flip, next, prev, markHint, restart }
 }
