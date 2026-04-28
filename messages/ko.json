@@ -7,7 +7,7 @@
   },
   "learn": {
     "title": "학습하기",
-    "flip": "정답 보기",
+    "flip": "설명 보기",
     "skip": "넘기기",
     "markWrong": "오답 기록",
     "hint": "힌트 보기",
@@ -19,10 +19,15 @@
     "completeMessage": "모든 문제를 완료했습니다.",
     "modeFlashcard": "플래시카드",
     "modeInput": "직접 입력",
+    "problemCount": "문제 수",
+    "allProblems": "전체",
+    "timer": "타이머",
+    "timerOff": "꺼짐",
+    "secondsSuffix": "초",
     "yourAnswer": "내 답변",
-    "yourAnswerPlaceholder": "정답을 입력하세요",
+    "yourAnswerPlaceholder": "설명을 입력하세요",
     "checkAnswer": "확인",
-    "correctAnswer": "정답",
+    "correctAnswer": "설명",
     "markCorrect": "맞았어요",
     "markWrong": "틀렸어요"
   },
@@ -33,7 +38,7 @@
     "delete": "문제 삭제",
     "deleteConfirm": "이 문제를 삭제하시겠습니까?",
     "question": "문제",
-    "answer": "정답",
+    "answer": "설명",
     "keywords": "관련 키워드",
     "keywordsPlaceholder": "키워드 입력 후 Enter 또는 쉼표",
     "category": "카테고리",
@@ -42,8 +47,10 @@
     "cancel": "취소",
     "noProblems": "등록된 문제가 없습니다.",
     "allCategories": "전체",
-    "memo": "메모",
-    "memoPlaceholder": "자료 조사나 생각을 자유롭게 입력하세요"
+    "images": "이미지",
+    "addImage": "이미지 추가",
+    "uploading": "업로드 중...",
+    "imagesHint": "이미지를 추가하면 학습 시 함께 보입니다."
   },
   "mistakes": {
     "title": "오답노트",

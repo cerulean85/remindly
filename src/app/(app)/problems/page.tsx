@@ -28,9 +28,9 @@ function ProblemCard({
   onDelete: (p: Problem) => void
 }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
+    <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm flex flex-col h-full">
       <button
-        className="w-full text-left p-4 pb-3 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors"
+        className="flex-1 flex flex-col items-start w-full text-left p-4 pb-3 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors"
         onClick={() => onDetail(problem)}
       >
         <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">{problem.question}</p>
@@ -47,7 +47,7 @@ function ProblemCard({
         )}
       </button>
 
-      <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 dark:border-gray-800">
+      <div className="mt-auto flex items-center justify-between px-4 py-3 border-t border-gray-100 dark:border-gray-800">
         <CategoryBadge category={problem.category} />
         <div className="flex gap-2">
           <button
@@ -93,7 +93,7 @@ export default function ProblemsPage() {
   })
 
   const createMutation = useMutation({
-    mutationFn: async (data: { question: string; answer: string; keywords: string[]; categoryId: string | null; memo: string | null }) => {
+    mutationFn: async (data: { question: string; answer: string; keywords: string[]; categoryId: string | null; images: string[] }) => {
       const r = await fetch("/api/problems", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
       if (!r.ok) throw new Error(await r.text())
       return r.json()
@@ -102,7 +102,7 @@ export default function ProblemsPage() {
   })
 
   const editMutation = useMutation({
-    mutationFn: async (data: { id: string; question: string; answer: string; keywords: string[]; categoryId: string | null; memo: string | null }) => {
+    mutationFn: async (data: { id: string; question: string; answer: string; keywords: string[]; categoryId: string | null }) => {
       const r = await fetch(`/api/problems/${data.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
       if (!r.ok) throw new Error(await r.text())
       return r.json()
@@ -118,7 +118,7 @@ export default function ProblemsPage() {
   if (isLoading) return <ProblemsPageSkeleton />
 
   return (
-    <div className="mx-auto max-w-lg px-4 py-6">
+    <div className="mx-auto max-w-lg sm:max-w-3xl lg:max-w-5xl xl:max-w-7xl px-4 py-6">
       <div className="mb-4 flex items-center">
         <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t("problems.title")}</h1>
         <Button size="sm" className="ml-auto" onClick={() => setShowAdd(true)}>
@@ -176,7 +176,7 @@ export default function ProblemsPage() {
           <p className="font-medium">{t("problems.noProblems")}</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {problems.map((p) => (
             <ProblemCard
               key={p.id}

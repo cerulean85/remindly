@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/Button"
 import { Badge } from "@/components/ui/Badge"
 import { CategoryBadge } from "@/components/categories/CategoryBadge"
+import { ImageGallery } from "@/components/ui/ImageGallery"
 import { cn } from "@/lib/utils"
 import type { Problem } from "@/types"
 import { useTranslation } from "react-i18next"
@@ -78,15 +79,14 @@ export function InputModeCard({ problem, onCorrect, onWrong, onSkip }: InputMode
             <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
               {problem.answer}
             </p>
+            {problem.images.length > 0 && (
+              <div className="mt-2">
+                <ImageGallery images={problem.images} size="sm" />
+              </div>
+            )}
             {problem.keywords.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-1">
                 {problem.keywords.map((kw) => <Badge key={kw}>{kw}</Badge>)}
-              </div>
-            )}
-            {problem.memo && (
-              <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-xs font-medium text-gray-500 mb-1">메모</p>
-                <p className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{problem.memo}</p>
               </div>
             )}
           </div>

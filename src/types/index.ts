@@ -12,8 +12,8 @@ export interface Problem {
   question: string
   answer: string
   keywords: string[]
+  images: string[]
   categoryId: string | null
-  memo: string | null
   userId: string
   createdAt: string
   updatedAt: string

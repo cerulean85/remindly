@@ -7,7 +7,7 @@
   },
   "learn": {
     "title": "Learn",
-    "flip": "Show Answer",
+    "flip": "Show Description",
     "skip": "Skip",
     "markWrong": "Mark Wrong",
     "hint": "Show Hint",
@@ -19,10 +19,15 @@
     "completeMessage": "You've reviewed all problems.",
     "modeFlashcard": "Flashcard",
     "modeInput": "Type Answer",
+    "problemCount": "Count",
+    "allProblems": "All",
+    "timer": "Timer",
+    "timerOff": "Off",
+    "secondsSuffix": "s",
     "yourAnswer": "Your Answer",
     "yourAnswerPlaceholder": "Type your answer here",
     "checkAnswer": "Check",
-    "correctAnswer": "Correct Answer",
+    "correctAnswer": "Description",
     "markCorrect": "Correct",
     "markWrong": "Wrong"
   },
@@ -33,7 +38,7 @@
     "delete": "Delete Problem",
     "deleteConfirm": "Are you sure you want to delete this problem?",
     "question": "Question",
-    "answer": "Answer",
+    "answer": "Description",
     "keywords": "Related Keywords",
     "keywordsPlaceholder": "Type keyword and press Enter or comma",
     "category": "Category",
@@ -42,8 +47,10 @@
     "cancel": "Cancel",
     "noProblems": "No problems registered.",
     "allCategories": "All",
-    "memo": "Memo",
-    "memoPlaceholder": "Write your research notes or thoughts freely"
+    "images": "Images",
+    "addImage": "Add Image",
+    "uploading": "Uploading...",
+    "imagesHint": "Images will be shown together during learning."
   },
   "mistakes": {
     "title": "Mistake Notes",

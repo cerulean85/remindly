@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useRef } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 import type { Problem } from "@/types"
 
 function shuffle<T>(arr: T[]): T[] {
@@ -12,11 +12,22 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
-export function useFlashcard(problems: Problem[]) {
-  const [deck, setDeck] = useState<Problem[]>(() => shuffle(problems))
+interface FlashcardOptions {
+  limit?: number | null
+  timerSeconds?: number
+}
+
+export function useFlashcard(problems: Problem[], options: FlashcardOptions = {}) {
+  const { limit = null, timerSeconds = 0 } = options
+
+  const [deck, setDeck] = useState<Problem[]>(() => {
+    const shuffled = shuffle(problems)
+    return limit ? shuffled.slice(0, limit) : shuffled
+  })
   const [index, setIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
   const flippedRef = useRef(false)
+  const [timeLeft, setTimeLeft] = useState(timerSeconds)
 
   const current = deck[index] ?? null
   const isComplete = deck.length > 0 && index >= deck.length
@@ -61,11 +72,44 @@ export function useFlashcard(problems: Problem[]) {
   }, [])
 
   const restart = useCallback(() => {
-    setDeck(shuffle(problems))
+    const shuffled = shuffle(problems)
+    setDeck(limit ? shuffled.slice(0, limit) : shuffled)
     setIndex(0)
     setIsFlipped(false)
     flippedRef.current = false
-  }, [problems])
+    setTimeLeft(timerSeconds)
+  }, [problems, limit, timerSeconds])
 
-  return { current, index, total: deck.length, isFlipped, isComplete, flip, next, prev, markHint, restart }
+  useEffect(() => {
+    if (timerSeconds === 0 || !current || isComplete) return
+    setTimeLeft(timerSeconds)
+
+    const id = setInterval(() => {
+      if (flippedRef.current) return
+      setTimeLeft((t) => {
+        if (t <= 1) {
+          clearInterval(id)
+          Promise.resolve().then(() => next("skip"))
+          return 0
+        }
+        return t - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(id)
+  }, [current, timerSeconds, isComplete, next])
+
+  return {
+    current,
+    index,
+    total: deck.length,
+    isFlipped,
+    isComplete,
+    timeLeft,
+    flip,
+    next,
+    prev,
+    markHint,
+    restart,
+  }
 }

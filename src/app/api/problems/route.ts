@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   const userId = session.user.id
 
-  const { question, answer, keywords, categoryId, memo } = await req.json()
+  const { question, answer, keywords, categoryId, images } = await req.json()
   if (!question?.trim() || !answer?.trim()) {
     return NextResponse.json({ error: "question and answer are required" }, { status: 400 })
   }
@@ -37,8 +37,8 @@ export async function POST(req: NextRequest) {
       question: question.trim(),
       answer: answer.trim(),
       keywords: Array.isArray(keywords) ? keywords : [],
+      images: Array.isArray(images) ? images.filter((u: unknown) => typeof u === "string") : [],
       categoryId: categoryId || null,
-      memo: memo?.trim() || null,
       userId,
     },
     include: { category: true },
