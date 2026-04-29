@@ -2,7 +2,7 @@
   "nav": {
     "learn": "학습하기",
     "mistakes": "오답노트",
-    "problems": "문제 관리",
+    "problems": "주제 관리",
     "settings": "설정"
   },
   "learn": {
@@ -12,14 +12,14 @@
     "markWrong": "오답 기록",
     "hint": "힌트 보기",
     "know": "알고 있어요",
-    "noProblems": "등록된 문제가 없습니다.",
-    "addProblems": "문제를 먼저 등록해주세요.",
+    "noProblems": "등록된 주제가 없습니다.",
+    "addProblems": "주제를 먼저 등록해주세요.",
     "allMode": "전체",
     "complete": "학습 완료!",
-    "completeMessage": "모든 문제를 완료했습니다.",
+    "completeMessage": "모든 주제를 완료했습니다.",
     "modeFlashcard": "플래시카드",
     "modeInput": "직접 입력",
-    "problemCount": "문제 수",
+    "problemCount": "주제 수",
     "allProblems": "전체",
     "timer": "타이머",
     "timerOff": "꺼짐",
@@ -32,12 +32,12 @@
     "markWrong": "틀렸어요"
   },
   "problems": {
-    "title": "문제 관리",
-    "add": "문제 추가",
-    "edit": "문제 수정",
-    "delete": "문제 삭제",
-    "deleteConfirm": "이 문제를 삭제하시겠습니까?",
-    "question": "문제",
+    "title": "주제 관리",
+    "add": "주제 추가",
+    "edit": "주제 수정",
+    "delete": "주제 삭제",
+    "deleteConfirm": "이 주제를 삭제하시겠습니까?",
+    "question": "주제",
     "answer": "설명",
     "keywords": "관련 키워드",
     "keywordsPlaceholder": "키워드 입력 후 Enter 또는 쉼표",
@@ -45,12 +45,14 @@
     "noCategory": "카테고리 없음",
     "save": "저장",
     "cancel": "취소",
-    "noProblems": "등록된 문제가 없습니다.",
+    "noProblems": "등록된 주제가 없습니다.",
     "allCategories": "전체",
     "images": "이미지",
     "addImage": "이미지 추가",
     "uploading": "업로드 중...",
-    "imagesHint": "이미지를 추가하면 학습 시 함께 보입니다."
+    "imagesHint": "이미지를 추가하면 학습 시 함께 보입니다.",
+    "searchPlaceholder": "주제, 설명, 키워드 검색",
+    "noSearchResults": "검색 결과가 없습니다."
   },
   "mistakes": {
     "title": "오답노트",

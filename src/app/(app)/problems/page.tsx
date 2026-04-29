@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/Button"
 import { Modal } from "@/components/ui/Modal"
@@ -76,6 +76,7 @@ export default function ProblemsPage() {
   const [editTarget, setEditTarget] = useState<Problem | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Problem | null>(null)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["categories"],
@@ -115,6 +116,16 @@ export default function ProblemsPage() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["problems"] }); setDeleteTarget(null) },
   })
 
+  const filteredProblems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return problems
+    return problems.filter((p) =>
+      p.question.toLowerCase().includes(q) ||
+      p.answer.toLowerCase().includes(q) ||
+      p.keywords.some((kw) => kw.toLowerCase().includes(q))
+    )
+  }, [problems, searchQuery])
+
   if (isLoading) return <ProblemsPageSkeleton />
 
   return (
@@ -124,6 +135,36 @@ export default function ProblemsPage() {
         <Button size="sm" className="ml-auto" onClick={() => setShowAdd(true)}>
           + {t("problems.add")}
         </Button>
+      </div>
+
+      <div className="mb-3 relative">
+        <svg
+          className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+        </svg>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={t("problems.searchPlaceholder")}
+          className="w-full rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 pl-9 pr-9 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            aria-label={t("common.close")}
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {categories.length > 0 && (
@@ -175,9 +216,14 @@ export default function ProblemsPage() {
           <p className="text-3xl mb-3">🗂</p>
           <p className="font-medium">{t("problems.noProblems")}</p>
         </div>
+      ) : filteredProblems.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center text-gray-500">
+          <p className="text-3xl mb-3">🔍</p>
+          <p className="font-medium">{t("problems.noSearchResults")}</p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {problems.map((p) => (
+          {filteredProblems.map((p) => (
             <ProblemCard
               key={p.id}
               problem={p}

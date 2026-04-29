@@ -2,22 +2,22 @@
 
 import i18n from "i18next"
 import { initReactI18next } from "react-i18next"
-import resourcesToBackend from "i18next-resources-to-backend"
+import ko from "../../messages/ko.json"
+import en from "../../messages/en.json"
 
 if (!i18n.isInitialized) {
-  i18n
-    .use(initReactI18next)
-    .use(
-      resourcesToBackend(
-        (language: string) => import(`../../messages/${language}.json`)
-      )
-    )
-    .init({
-      fallbackLng: "ko",
-      supportedLngs: ["ko", "en"],
-      defaultNS: "common",
-      interpolation: { escapeValue: false },
-    })
+  i18n.use(initReactI18next).init({
+    resources: {
+      ko: { common: ko },
+      en: { common: en },
+    },
+    lng: "ko",
+    fallbackLng: "ko",
+    supportedLngs: ["ko", "en"],
+    defaultNS: "common",
+    interpolation: { escapeValue: false },
+    react: { useSuspense: false },
+  })
 }
 
 export default i18n

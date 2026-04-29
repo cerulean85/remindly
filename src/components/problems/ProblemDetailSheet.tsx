@@ -75,7 +75,7 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete }: Probl
 
             {/* Question */}
             <div>
-              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1.5">문제</p>
+              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1.5">주제</p>
               <p className="text-base font-medium text-gray-900 dark:text-gray-100 leading-relaxed whitespace-pre-wrap">
                 {problem?.question}
               </p>

@@ -96,8 +96,8 @@ export function ProblemForm({ initial, categories, onSubmit, onCancel, isLoading
           value={answer}
           onChange={(e) => setAnswer(e.target.value)}
           required
-          rows={3}
-          className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
+          rows={8}
+          className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400 resize-y min-h-[10rem]"
         />
       </div>
 

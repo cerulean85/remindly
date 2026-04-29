@@ -50,7 +50,9 @@
     "images": "Images",
     "addImage": "Add Image",
     "uploading": "Uploading...",
-    "imagesHint": "Images will be shown together during learning."
+    "imagesHint": "Images will be shown together during learning.",
+    "searchPlaceholder": "Search question, description, keywords",
+    "noSearchResults": "No matching results."
   },
   "mistakes": {
     "title": "Mistake Notes",
