@@ -49,11 +49,11 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete }: Probl
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className="mx-auto max-w-3xl rounded-t-3xl bg-white dark:bg-gray-900 shadow-2xl h-[95dvh] flex flex-col relative"
+          className="mx-auto max-w-3xl rounded-t-3xl bg-white dark:bg-neutral-900 shadow-2xl h-[95dvh] flex flex-col relative"
         >
           {/* Handle bar */}
           <div className="flex justify-center pt-3 pb-1 shrink-0">
-            <div className="h-1 w-10 rounded-full bg-gray-300 dark:bg-gray-700" />
+            <div className="h-1 w-10 rounded-full bg-gray-300 dark:bg-neutral-700" />
           </div>
 
           {/* Close button */}
@@ -61,7 +61,7 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete }: Probl
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="absolute top-3 right-3 h-9 w-9 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center justify-center text-xl leading-none"
+            className="absolute top-3 right-3 h-9 w-9 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors flex items-center justify-center text-xl leading-none"
           >
             ×
           </button>
@@ -70,7 +70,9 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete }: Probl
           <div className="overflow-y-auto px-6 pb-8 pt-3 flex flex-col gap-5">
             {/* Category */}
             {problem?.category && (
-              <CategoryBadge category={problem.category} />
+              <div>
+                <CategoryBadge category={problem.category} />
+              </div>
             )}
 
             {/* Question */}
@@ -82,11 +84,11 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete }: Probl
             </div>
 
             {/* Divider */}
-            <div className="border-t border-gray-100 dark:border-gray-800" />
+            <div className="border-t border-gray-100 dark:border-neutral-800" />
 
             {/* Answer */}
             <div>
-              <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wide mb-1.5">설명</p>
+              <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wide mb-1.5">설명</p>
               <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">
                 {problem?.answer}
               </p>
@@ -115,7 +117,7 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete }: Probl
                 {onEdit && (
                   <button
                     onClick={() => { onClose(); setTimeout(() => onEdit(problem), 150) }}
-                    className="flex-1 rounded-xl border border-gray-300 dark:border-gray-700 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    className="flex-1 rounded-xl border border-gray-300 dark:border-neutral-700 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
                   >
                     수정
                   </button>

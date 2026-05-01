@@ -14,11 +14,12 @@ export async function GET(req: NextRequest) {
   const mistakes = await prisma.mistakeNote.findMany({
     where: {
       userId,
+      OR: [{ skipCount: { gt: 0 } }, { blurryCount: { gt: 0 } }],
       ...(categoryId && { problem: { categoryId } }),
     },
     orderBy: [
       { skipCount: "desc" },
-      { hintCount: "desc" },
+      { blurryCount: "desc" },
       { createdAt: "desc" },
     ],
     include: {

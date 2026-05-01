@@ -9,7 +9,7 @@ import { LogoFull } from "@/components/ui/Logo"
 function TopBar() {
   const { toggle } = useDrawer()
   return (
-    <header className="flex h-14 items-center px-4 border-b border-gray-200 dark:border-gray-800 md:hidden bg-white dark:bg-gray-950">
+    <header className="flex h-14 items-center px-4 border-b border-gray-200 dark:border-neutral-800 md:hidden bg-white dark:bg-black">
       <button
         onClick={toggle}
         className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mr-3"

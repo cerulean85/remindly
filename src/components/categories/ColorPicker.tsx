@@ -3,9 +3,9 @@
 import { cn } from "@/lib/utils"
 
 const COLORS = [
-  "#6366f1", "#8b5cf6", "#ec4899", "#ef4444",
-  "#f97316", "#eab308", "#22c55e", "#14b8a6",
-  "#3b82f6", "#06b6d4", "#64748b", "#78716c",
+  "#10b981", "#22c55e", "#14b8a6", "#3b82f6",
+  "#06b6d4", "#8b5cf6", "#ec4899", "#ef4444",
+  "#f97316", "#eab308", "#64748b", "#78716c",
 ]
 
 export function ColorPicker({ value, onChange }: { value: string; onChange: (color: string) => void }) {

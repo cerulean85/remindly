@@ -41,12 +41,12 @@ export function useFlashcard(problems: Problem[], options: FlashcardOptions = {}
   }, [])
 
   const next = useCallback(
-    async (action?: "skip" | "know") => {
-      if (current && action === "skip") {
+    async (action?: "skip" | "blurry" | "vivid") => {
+      if (current && action) {
         fetch(`/api/mistakes/${current.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "skip" }),
+          body: JSON.stringify({ action }),
         }).catch(() => {})
       }
       setIsFlipped(false)
@@ -55,15 +55,6 @@ export function useFlashcard(problems: Problem[], options: FlashcardOptions = {}
     },
     [current]
   )
-
-  const markHint = useCallback(() => {
-    if (!current) return
-    fetch(`/api/mistakes/${current.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "hint" }),
-    }).catch(() => {})
-  }, [current])
 
   const prev = useCallback(() => {
     setIsFlipped(false)
@@ -109,7 +100,6 @@ export function useFlashcard(problems: Problem[], options: FlashcardOptions = {}
     flip,
     next,
     prev,
-    markHint,
     restart,
   }
 }

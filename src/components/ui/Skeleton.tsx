@@ -2,13 +2,13 @@ import { cn } from "@/lib/utils"
 
 export function Skeleton({ className }: { className?: string }) {
   return (
-    <div className={cn("animate-pulse rounded-md bg-gray-200 dark:bg-gray-800", className)} />
+    <div className={cn("animate-pulse rounded-md bg-gray-200 dark:bg-neutral-800", className)} />
   )
 }
 
 export function ProblemCardSkeleton() {
   return (
-    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm p-4 pb-3">
+    <div className="rounded-2xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-sm p-4 pb-3">
       <Skeleton className="h-4 w-3/4 mb-2" />
       <Skeleton className="h-3 w-full mb-1" />
       <Skeleton className="h-3 w-2/3 mb-3" />
@@ -17,7 +17,7 @@ export function ProblemCardSkeleton() {
         <Skeleton className="h-5 w-10 rounded-full" />
         <Skeleton className="h-5 w-14 rounded-full" />
       </div>
-      <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
+      <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-neutral-800">
         <Skeleton className="h-5 w-16 rounded-full" />
         <div className="flex gap-2">
           <Skeleton className="h-3 w-6" />
@@ -28,30 +28,62 @@ export function ProblemCardSkeleton() {
   )
 }
 
-export function ProblemsPageSkeleton() {
+export function ProblemRowSkeleton() {
   return (
-    <div className="mx-auto max-w-lg px-4 py-6">
+    <div className="flex items-center gap-3 rounded-xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-sm px-3 py-2.5">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-4 w-10 rounded-full" />
+        </div>
+        <Skeleton className="h-3 w-3/4" />
+      </div>
+      <Skeleton className="h-5 w-16 rounded-full shrink-0" />
+      <div className="shrink-0 flex gap-2 pl-2 border-l border-gray-200 dark:border-neutral-800">
+        <Skeleton className="h-3 w-6" />
+        <Skeleton className="h-3 w-6" />
+      </div>
+    </div>
+  )
+}
+
+export function ProblemsPageSkeleton({ viewMode = "grid" }: { viewMode?: "grid" | "list" } = {}) {
+  return (
+    <div className="mx-auto max-w-lg sm:max-w-3xl lg:max-w-5xl xl:max-w-7xl px-4 py-6">
       <div className="mb-4 flex items-center">
         <Skeleton className="h-7 w-24" />
         <Skeleton className="ml-auto h-8 w-24 rounded-xl" />
+      </div>
+      <div className="mb-3 flex gap-2">
+        <Skeleton className="h-9 flex-1 rounded-full" />
+        <Skeleton className="h-9 w-32 rounded-full" />
+        <Skeleton className="h-9 w-20 rounded-full" />
       </div>
       <div className="mb-5 flex gap-2">
         <Skeleton className="h-6 w-10 rounded-full" />
         <Skeleton className="h-6 w-20 rounded-full" />
         <Skeleton className="h-6 w-16 rounded-full" />
       </div>
-      <div className="flex flex-col gap-3">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <ProblemCardSkeleton key={i} />
-        ))}
-      </div>
+      {viewMode === "list" ? (
+        <div className="flex flex-col gap-2">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <ProblemRowSkeleton key={i} />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <ProblemCardSkeleton key={i} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
 
 export function MistakeCardSkeleton() {
   return (
-    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm p-4">
+    <div className="rounded-2xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-sm p-4">
       <div className="flex items-start justify-between gap-2 mb-2">
         <Skeleton className="h-4 w-2/3" />
         <Skeleton className="h-5 w-16 rounded-full shrink-0" />
@@ -86,7 +118,7 @@ export function FlashcardSkeleton() {
         <Skeleton className="h-3 w-10" />
         <Skeleton className="h-1.5 flex-1 rounded-full" />
       </div>
-      <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm p-6 min-h-[200px]">
+      <div className="rounded-2xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-sm p-6 min-h-[200px]">
         <div className="flex justify-between mb-4">
           <Skeleton className="h-5 w-16 rounded-full" />
           <Skeleton className="h-3 w-24" />

@@ -3,6 +3,8 @@
 import { useEffect } from "react"
 import { useDrawer } from "@/hooks/useDrawer"
 import { NavLinks } from "./NavLinks"
+import { SettingsIcon, XIcon } from "@/components/ui/Icons"
+import { LogoFull } from "@/components/ui/Logo"
 import { useSession } from "next-auth/react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
@@ -32,17 +34,18 @@ export function DrawerOverlay() {
       )}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-white dark:bg-gray-950 shadow-xl transition-transform duration-300 md:hidden",
+          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-white dark:bg-black shadow-xl transition-transform duration-300 md:hidden",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex h-14 items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800">
-          <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">Remindly</span>
+        <div className="flex h-14 items-center justify-between px-4 border-b border-gray-200 dark:border-neutral-800">
+          <LogoFull iconSize={26} />
           <button
             onClick={close}
             className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+            aria-label={t("common.close")}
           >
-            ✕
+            <XIcon className="h-5 w-5" />
           </button>
         </div>
 
@@ -58,7 +61,7 @@ export function DrawerOverlay() {
                   className="rounded-full"
                 />
               ) : (
-                <div className="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-medium text-sm">
+                <div className="h-9 w-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-medium text-sm">
                   {session.user.name?.[0] ?? "U"}
                 </div>
               )}
@@ -73,18 +76,18 @@ export function DrawerOverlay() {
           <NavLinks onNavigate={close} />
         </div>
 
-        <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+        <div className="p-4 border-t border-gray-200 dark:border-neutral-800">
           <Link
             href="/settings"
             onClick={close}
             className={cn(
               "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
               pathname.startsWith("/settings")
-                ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400"
-                : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
+                : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-neutral-800"
             )}
           >
-            <span>⚙️</span>
+            <SettingsIcon className="h-5 w-5" />
             {t("nav.settings")}
           </Link>
         </div>

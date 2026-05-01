@@ -3,6 +3,7 @@
 import { useRef, useState } from "react"
 import { Button } from "@/components/ui/Button"
 import { TagInput } from "./TagInput"
+import { uploadImage } from "@/lib/uploadImage"
 import type { Category, Problem } from "@/types"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
@@ -13,25 +14,6 @@ interface ProblemFormProps {
   onSubmit: (data: { question: string; answer: string; keywords: string[]; categoryId: string | null; images: string[] }) => Promise<void>
   onCancel: () => void
   isLoading?: boolean
-}
-
-async function uploadImage(file: File): Promise<string> {
-  const ext = file.name.split(".").pop() ?? ""
-  const presignRes = await fetch("/api/uploads/presign", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ contentType: file.type, size: file.size, ext }),
-  })
-  if (!presignRes.ok) throw new Error(await presignRes.text())
-  const { uploadUrl, publicUrl } = await presignRes.json()
-
-  const putRes = await fetch(uploadUrl, {
-    method: "PUT",
-    headers: { "Content-Type": file.type },
-    body: file,
-  })
-  if (!putRes.ok) throw new Error("Upload failed")
-  return publicUrl
 }
 
 export function ProblemForm({ initial, categories, onSubmit, onCancel, isLoading }: ProblemFormProps) {
@@ -84,7 +66,7 @@ export function ProblemForm({ initial, categories, onSubmit, onCancel, isLoading
           onChange={(e) => setQuestion(e.target.value)}
           required
           rows={3}
-          className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
+          className="w-full rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400 resize-none"
         />
       </div>
 
@@ -97,7 +79,7 @@ export function ProblemForm({ initial, categories, onSubmit, onCancel, isLoading
           onChange={(e) => setAnswer(e.target.value)}
           required
           rows={8}
-          className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400 resize-y min-h-[10rem]"
+          className="w-full rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400 resize-y min-h-[10rem]"
         />
       </div>
 
@@ -110,7 +92,7 @@ export function ProblemForm({ initial, categories, onSubmit, onCancel, isLoading
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="text-xs font-medium text-indigo-500 hover:text-indigo-600 disabled:opacity-50"
+            className="text-xs font-medium text-emerald-500 hover:text-emerald-600 disabled:opacity-50"
           >
             {uploading ? t("problems.uploading") : `+ ${t("problems.addImage")}`}
           </button>
@@ -129,7 +111,7 @@ export function ProblemForm({ initial, categories, onSubmit, onCancel, isLoading
         {images.length > 0 ? (
           <div className="grid grid-cols-3 gap-2">
             {images.map((url) => (
-              <div key={url} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
+              <div key={url} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={url} alt="" className="h-full w-full object-cover" />
                 <button
@@ -166,7 +148,7 @@ export function ProblemForm({ initial, categories, onSubmit, onCancel, isLoading
         <select
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
-          className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
+          className="w-full rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
         >
           <option value="">{t("problems.noCategory")}</option>
           {categories.map((cat) => (

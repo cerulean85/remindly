@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useSession, signOut } from "next-auth/react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import Image from "next/image"
@@ -10,13 +10,13 @@ import { ConfirmModal } from "@/components/ui/Modal"
 import { ColorPicker } from "@/components/categories/ColorPicker"
 import { ThemeToggle } from "@/components/settings/ThemeToggle"
 import { LanguageToggle } from "@/components/settings/LanguageToggle"
-import type { Category } from "@/types"
+import type { Category, UserSettings } from "@/types"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-5">
+    <div className="rounded-2xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 p-5">
       <h2 className="mb-4 text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{title}</h2>
       {children}
     </div>
@@ -34,11 +34,39 @@ export default function SettingsPage() {
   const [showDeleteAccount, setShowDeleteAccount] = useState(false)
 
   const [catName, setCatName] = useState("")
-  const [catColor, setCatColor] = useState("#6366f1")
+  const [catColor, setCatColor] = useState("#10b981")
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["categories"],
     queryFn: () => fetch("/api/categories").then((r) => r.json()),
+  })
+
+  const { data: userSettings } = useQuery<UserSettings>({
+    queryKey: ["settings"],
+    queryFn: () => fetch("/api/settings").then((r) => r.json()),
+  })
+
+  const [thresholdInput, setThresholdInput] = useState<string>("")
+  const [staleDaysInput, setStaleDaysInput] = useState<string>("")
+
+  useEffect(() => {
+    if (userSettings) {
+      setThresholdInput(String(userSettings.retrievalThreshold))
+      setStaleDaysInput(String(userSettings.staleDays))
+    }
+  }, [userSettings])
+
+  const updateSettings = useMutation({
+    mutationFn: (data: Partial<UserSettings>) =>
+      fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }).then((r) => r.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["settings"] })
+      queryClient.invalidateQueries({ queryKey: ["problems"] })
+    },
   })
 
   const createCat = useMutation({
@@ -47,7 +75,7 @@ export default function SettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] })
       setShowAddCategory(false)
-      setCatName(""); setCatColor("#6366f1")
+      setCatName(""); setCatColor("#10b981")
     },
   })
 
@@ -79,17 +107,68 @@ export default function SettingsPage() {
         <LanguageToggle />
       </Section>
 
+      <Section title={t("settings.retrieval")}>
+        <div className="flex flex-col gap-4">
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              {t("settings.retrievalThreshold")}
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={thresholdInput}
+                onChange={(e) => setThresholdInput(e.target.value)}
+                onBlur={() => {
+                  const v = Number(thresholdInput)
+                  if (Number.isFinite(v) && v >= 0 && v <= 100 && v !== userSettings?.retrievalThreshold) {
+                    updateSettings.mutate({ retrievalThreshold: v })
+                  }
+                }}
+                className="w-24 rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
+              />
+              <span className="text-sm text-gray-500">%</span>
+              <p className="ml-auto text-xs text-gray-400">{t("settings.retrievalThresholdHint")}</p>
+            </div>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              {t("settings.staleDays")}
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={1}
+                max={365}
+                value={staleDaysInput}
+                onChange={(e) => setStaleDaysInput(e.target.value)}
+                onBlur={() => {
+                  const v = Number(staleDaysInput)
+                  if (Number.isFinite(v) && v >= 1 && v <= 365 && v !== userSettings?.staleDays) {
+                    updateSettings.mutate({ staleDays: v })
+                  }
+                }}
+                className="w-24 rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
+              />
+              <span className="text-sm text-gray-500">{t("settings.daysSuffix")}</span>
+              <p className="ml-auto text-xs text-gray-400">{t("settings.staleDaysHint")}</p>
+            </div>
+          </div>
+        </div>
+      </Section>
+
       <Section title={t("categories.title")}>
         <div className="flex flex-col gap-2">
           {categories.map((cat) => (
             <div
               key={cat.id}
-              className="flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800"
+              className="flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-gray-50 dark:hover:bg-neutral-800"
             >
               <div className="h-3 w-3 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
               <span className="flex-1 text-sm text-gray-800 dark:text-gray-200">{cat.name}</span>
               <span className="text-xs text-gray-400">{cat._count?.problems ?? 0}개</span>
-              <button className="text-xs text-gray-400 hover:text-indigo-500" onClick={() => { setEditCategory(cat); setCatName(cat.name); setCatColor(cat.color) }}>수정</button>
+              <button className="text-xs text-gray-400 hover:text-emerald-500" onClick={() => { setEditCategory(cat); setCatName(cat.name); setCatColor(cat.color) }}>수정</button>
               <button className="text-xs text-gray-400 hover:text-red-500" onClick={() => setDeleteCategory(cat)}>삭제</button>
             </div>
           ))}
@@ -105,7 +184,7 @@ export default function SettingsPage() {
             {session.user.image ? (
               <Image src={session.user.image} alt="" width={40} height={40} className="rounded-full" />
             ) : (
-              <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-medium">
+              <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-medium">
                 {session.user.name?.[0] ?? "U"}
               </div>
             )}
@@ -137,7 +216,7 @@ export default function SettingsPage() {
             <input
               value={catName}
               onChange={(e) => setCatName(e.target.value)}
-              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-full rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
             />
           </div>
           <div>
@@ -159,7 +238,7 @@ export default function SettingsPage() {
             <input
               value={catName}
               onChange={(e) => setCatName(e.target.value)}
-              className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400"
+              className="w-full rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
             />
           </div>
           <div>

@@ -28,7 +28,7 @@ export function FlashCard({ problem, isFlipped, onClick, timeLeft, timerTotal }:
         style={{ transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
       >
         {/* Front */}
-        <div className="[backface-visibility:hidden] [grid-area:1/1] flex flex-col justify-center min-h-[200px] rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm p-6">
+        <div className="[backface-visibility:hidden] [grid-area:1/1] flex flex-col justify-center min-h-[200px] rounded-2xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-sm p-6">
           <div className="flex justify-between items-start mb-4">
             <CategoryBadge category={problem.category} />
             {showTimer ? (
@@ -49,10 +49,10 @@ export function FlashCard({ problem, isFlipped, onClick, timeLeft, timerTotal }:
 
         {/* Back */}
         <div
-          className="[backface-visibility:hidden] [grid-area:1/1] flex flex-col min-h-[200px] rounded-2xl bg-indigo-50 dark:bg-indigo-950 border border-indigo-200 dark:border-indigo-800 shadow-sm p-6"
+          className="[backface-visibility:hidden] [grid-area:1/1] flex flex-col min-h-[200px] rounded-2xl bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 shadow-sm p-6"
           style={{ transform: "rotateY(180deg)" }}
         >
-          <p className="text-sm font-medium text-indigo-500 dark:text-indigo-400 mb-3">설명</p>
+          <p className="text-sm font-medium text-emerald-500 dark:text-emerald-400 mb-3">설명</p>
           <p className="text-base text-gray-900 dark:text-gray-100 whitespace-pre-wrap leading-relaxed">
             {problem.answer}
           </p>

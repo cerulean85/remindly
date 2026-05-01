@@ -19,6 +19,9 @@ export interface Problem {
   updatedAt: string
   category?: Category | null
   mistakeNote?: MistakeNote | null
+  retrievalRate?: number | null
+  totalCount?: number
+  lastStudiedAt?: string | null
 }
 
 export interface MistakeNote {
@@ -26,8 +29,30 @@ export interface MistakeNote {
   problemId: string
   userId: string
   skipCount: number
-  hintCount: number
+  blurryCount: number
+  vividCount: number
+  lastStudiedAt: string | null
   createdAt: string
   updatedAt: string
+  problem?: Problem
+}
+
+export interface UserSettings {
+  retrievalThreshold: number
+  staleDays: number
+}
+
+export interface CalendarDay {
+  date: string
+  vividCount: number
+  blurryCount: number
+  emptyCount: number
+}
+
+export interface StudyLogEntry {
+  id: string
+  problemId: string
+  rating: "empty" | "blurry" | "vivid"
+  studiedAt: string
   problem?: Problem
 }

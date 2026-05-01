@@ -56,7 +56,7 @@ export function TagInput({ value, onChange, placeholder, className }: TagInputPr
   return (
     <div
       className={cn(
-        "flex flex-wrap gap-1.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 min-h-[42px]",
+        "flex flex-wrap gap-1.5 rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 min-h-[42px]",
         className
       )}
     >

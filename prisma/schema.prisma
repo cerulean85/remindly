@@ -8,19 +8,23 @@ datasource db {
 }
 
 model User {
-  id            String        @id @default(cuid())
-  name          String?
-  email         String        @unique
-  emailVerified DateTime?
-  image         String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id                  String        @id @default(cuid())
+  name                String?
+  email               String        @unique
+  emailVerified       DateTime?
+  image               String?
+  retrievalThreshold  Int           @default(80)
+  staleDays           Int           @default(7)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
 
   accounts     Account[]
   sessions     Session[]
   categories   Category[]
   problems     Problem[]
   mistakeNotes MistakeNote[]
+  studyLogs    StudyLog[]
+  notes        Note[]
 }
 
 model Account {
@@ -73,32 +77,69 @@ model Category {
 }
 
 model Problem {
-  id         String   @id @default(cuid())
-  question   String   @db.Text
-  answer     String   @db.Text
-  keywords   String[]
-  images     String[]
-  categoryId String?
-  userId     String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id            String   @id @default(cuid())
+  question      String   @db.Text
+  answer        String   @db.Text
+  keywords      String[]
+  images        String[]
+  categoryId    String?
+  userId        String
+  retrievalRate Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   category    Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   mistakeNote MistakeNote?
+  studyLogs   StudyLog[]
+
+  @@index([userId, retrievalRate])
 }
 
 model MistakeNote {
-  id        String   @id @default(cuid())
-  problemId String   @unique
-  userId    String
-  skipCount Int      @default(0)
-  hintCount Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String    @id @default(cuid())
+  problemId       String    @unique
+  userId          String
+  skipCount       Int       @default(0)
+  hintCount       Int       @default(0)
+  blurryCount     Int       @default(0)
+  vividCount      Int       @default(0)
+  retrievalRate   Int       @default(0)
+  lastStudiedAt   DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId, skipCount, hintCount])
+  @@index([userId, skipCount, blurryCount, vividCount])
+  @@index([userId, retrievalRate])
+  @@index([userId, lastStudiedAt])
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String   @db.Text
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, updatedAt])
+}
+
+model StudyLog {
+  id        String   @id @default(cuid())
+  problemId String
+  userId    String
+  rating    String
+  studiedAt DateTime @default(now())
+
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, studiedAt])
+  @@index([problemId, studiedAt])
 }

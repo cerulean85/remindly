@@ -48,7 +48,7 @@ export function ImageGallery({ images, size = "md" }: ImageGalleryProps) {
               e.stopPropagation()
               setActiveIndex(i)
             }}
-            className={`${itemCls} rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 hover:opacity-80 transition-opacity`}
+            className={`${itemCls} rounded-lg overflow-hidden border border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900 hover:opacity-80 transition-opacity`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={url} alt="" className={imgCls} />

@@ -6,8 +6,8 @@ import { LogoMark } from "@/components/ui/Logo"
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950 p-4">
-      <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-gray-900 shadow-xl p-8 text-center">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-black p-4">
+      <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-neutral-900 shadow-xl p-8 text-center">
         <div className="mb-6">
           <div className="flex justify-center mb-4">
             <LogoMark size={64} />
@@ -21,7 +21,7 @@ export default function LoginPage() {
         <Button
           size="lg"
           className="w-full"
-          onClick={() => signIn("google", { callbackUrl: "/learn" })}
+          onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
         >
           <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
             <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

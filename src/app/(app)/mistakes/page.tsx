@@ -53,8 +53,8 @@ export default function MistakesPage() {
                 className={cn(
                   "shrink-0 rounded-full px-3 py-1 text-xs font-medium border transition-colors",
                   selectedCategoryId === null
-                    ? "bg-indigo-500 text-white border-indigo-500"
-                    : "border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    ? "bg-emerald-500 text-white border-emerald-500"
+                    : "border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800"
                 )}
               >
                 {t("problems.allCategories")}
@@ -66,8 +66,8 @@ export default function MistakesPage() {
                   className={cn(
                     "shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium border transition-colors",
                     selectedCategoryId === cat.id
-                      ? "bg-indigo-500 text-white border-indigo-500"
-                      : "border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      ? "bg-emerald-500 text-white border-emerald-500"
+                      : "border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800"
                   )}
                 >
                   <span
