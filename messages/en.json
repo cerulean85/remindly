@@ -6,7 +6,9 @@
     "mistakes": "Mistakes",
     "problems": "Problems",
     "notes": "Notes",
-    "settings": "Settings"
+    "settings": "Settings",
+    "collapse": "Collapse navigator",
+    "expand": "Expand navigator"
   },
   "learn": {
     "title": "Learn",

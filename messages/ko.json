@@ -6,7 +6,9 @@
     "mistakes": "오답노트",
     "problems": "주제 관리",
     "notes": "메모",
-    "settings": "설정"
+    "settings": "설정",
+    "collapse": "내비게이터 접기",
+    "expand": "내비게이터 펼치기"
   },
   "learn": {
     "title": "학습하기",

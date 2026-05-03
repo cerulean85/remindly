@@ -26,7 +26,13 @@ const links: { href: string; labelKey: string; Icon: ComponentType<IconProps> }[
   { href: "/notes", labelKey: "nav.notes", Icon: NotesIcon },
 ]
 
-export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+export function NavLinks({
+  collapsed = false,
+  onNavigate,
+}: {
+  collapsed?: boolean
+  onNavigate?: () => void
+}) {
   const pathname = usePathname()
   const { t } = useTranslation()
 
@@ -37,15 +43,17 @@ export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
           key={href}
           href={href}
           onClick={onNavigate}
+          title={collapsed ? t(labelKey) : undefined}
           className={cn(
-            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+            "flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+            collapsed ? "justify-center" : "gap-3",
             pathname.startsWith(href)
               ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
               : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-neutral-800"
           )}
         >
-          <Icon className="h-5 w-5" />
-          {t(labelKey)}
+          <Icon className="h-5 w-5 shrink-0" />
+          <span className={cn(collapsed && "sr-only")}>{t(labelKey)}</span>
         </Link>
       ))}
     </nav>
