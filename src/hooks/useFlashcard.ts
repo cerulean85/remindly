@@ -73,7 +73,10 @@ export function useFlashcard(problems: Problem[], options: FlashcardOptions = {}
 
   useEffect(() => {
     if (timerSeconds === 0 || !current || isComplete) return
-    setTimeLeft(timerSeconds)
+    let active = true
+    queueMicrotask(() => {
+      if (active) setTimeLeft(timerSeconds)
+    })
 
     const id = setInterval(() => {
       if (flippedRef.current) return
@@ -87,7 +90,10 @@ export function useFlashcard(problems: Problem[], options: FlashcardOptions = {}
       })
     }, 1000)
 
-    return () => clearInterval(id)
+    return () => {
+      active = false
+      clearInterval(id)
+    }
   }, [current, timerSeconds, isComplete, next])
 
   return {

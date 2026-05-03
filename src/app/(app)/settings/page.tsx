@@ -50,9 +50,16 @@ export default function SettingsPage() {
   const [staleDaysInput, setStaleDaysInput] = useState<string>("")
 
   useEffect(() => {
-    if (userSettings) {
+    if (!userSettings) return
+
+    let active = true
+    queueMicrotask(() => {
+      if (!active) return
       setThresholdInput(String(userSettings.retrievalThreshold))
       setStaleDaysInput(String(userSettings.staleDays))
+    })
+    return () => {
+      active = false
     }
   }, [userSettings])
 

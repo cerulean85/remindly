@@ -1,7 +1,6 @@
 "use client"
 
 import { useTheme } from "next-themes"
-import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"

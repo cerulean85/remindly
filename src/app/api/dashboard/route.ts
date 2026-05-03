@@ -82,7 +82,14 @@ export async function GET() {
       return at - bt
     })
     .slice(0, 5)
-    .map(({ level: _level, lastStudiedTime: _t, ...rest }) => rest)
+    .map((p): ProblemSummary => ({
+      id: p.id,
+      question: p.question,
+      category: p.category,
+      retrievalRate: p.retrievalRate,
+      totalCount: p.totalCount,
+      lastStudiedAt: p.lastStudiedAt,
+    }))
 
   return NextResponse.json({
     settings: { retrievalThreshold: threshold, staleDays: user?.staleDays ?? 7 },

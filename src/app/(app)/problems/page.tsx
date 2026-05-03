@@ -201,18 +201,21 @@ export default function ProblemsPage() {
   useEffect(() => {
     if (typeof window === "undefined") return
     const stored = window.localStorage.getItem(VIEW_STORAGE_KEY)
-    if (stored === "grid" || stored === "list") setViewMode(stored)
+    if (stored !== "grid" && stored !== "list") return
+
+    let active = true
+    queueMicrotask(() => {
+      if (active) setViewMode(stored)
+    })
+    return () => {
+      active = false
+    }
   }, [])
 
   useEffect(() => {
     if (typeof window === "undefined") return
     window.localStorage.setItem(VIEW_STORAGE_KEY, viewMode)
   }, [viewMode])
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchInput.trim()), 300)
-    return () => clearTimeout(timer)
-  }, [searchInput])
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["categories"],
@@ -293,6 +296,16 @@ export default function ProblemsPage() {
 
   if (isLoading) return <ProblemsPageSkeleton viewMode={viewMode} />
 
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setDebouncedSearch(searchInput.trim())
+  }
+
+  const handleClearSearch = () => {
+    setSearchInput("")
+    setDebouncedSearch("")
+  }
+
   const isSearching = debouncedSearch.length > 0
   const isEmpty = items.length === 0
 
@@ -306,7 +319,7 @@ export default function ProblemsPage() {
       </div>
 
       <div className="mb-3 flex gap-2">
-        <div className="flex-1 relative">
+        <form className="flex-1 relative" onSubmit={handleSearchSubmit}>
           <svg
             className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none"
             fill="none"
@@ -325,7 +338,7 @@ export default function ProblemsPage() {
           {searchInput && (
             <button
               type="button"
-              onClick={() => setSearchInput("")}
+              onClick={handleClearSearch}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               aria-label={t("common.close")}
             >
@@ -334,7 +347,7 @@ export default function ProblemsPage() {
               </svg>
             </button>
           )}
-        </div>
+        </form>
         <select
           value={sortKey}
           onChange={(e) => setSortKey(e.target.value as SortKey)}

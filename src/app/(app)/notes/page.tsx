@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/Button"
 import { ConfirmModal } from "@/components/ui/Modal"
@@ -110,14 +110,17 @@ export default function NotesPage() {
   }
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchInput.trim()), 300)
-    return () => clearTimeout(timer)
-  }, [searchInput])
-
-  useEffect(() => {
     if (typeof window === "undefined") return
     const stored = window.localStorage.getItem(VIEW_STORAGE_KEY)
-    if (stored === "edit" || stored === "preview" || stored === "split") setViewMode(stored)
+    if (stored !== "edit" && stored !== "preview" && stored !== "split") return
+
+    let active = true
+    queueMicrotask(() => {
+      if (active) setViewMode(stored)
+    })
+    return () => {
+      active = false
+    }
   }, [])
 
   useEffect(() => {
@@ -142,10 +145,17 @@ export default function NotesPage() {
   })
 
   useEffect(() => {
-    if (selectedNote && selectedNote.id === selectedId) {
+    if (!selectedNote || selectedNote.id !== selectedId) return
+
+    let active = true
+    queueMicrotask(() => {
+      if (!active) return
       setDraftTitle(selectedNote.title)
       setDraftContent(selectedNote.content)
       setSaveStatus("idle")
+    })
+    return () => {
+      active = false
     }
   }, [selectedNote, selectedId])
 
@@ -185,7 +195,10 @@ export default function NotesPage() {
     if (draftTitle === selectedNote.title && draftContent === selectedNote.content) {
       return
     }
-    setSaveStatus("saving")
+    let active = true
+    queueMicrotask(() => {
+      if (active) setSaveStatus("saving")
+    })
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(async () => {
       try {
@@ -208,12 +221,13 @@ export default function NotesPage() {
           })
           return next
         })
-        setSaveStatus("saved")
+        if (active) setSaveStatus("saved")
       } catch {
-        setSaveStatus("idle")
+        if (active) setSaveStatus("idle")
       }
     }, 600)
     return () => {
+      active = false
       if (saveTimer.current) clearTimeout(saveTimer.current)
     }
   }, [draftTitle, draftContent, selectedId, selectedNote, debouncedSearch, queryClient])
@@ -223,10 +237,19 @@ export default function NotesPage() {
 
   const noteTitle = (n: NoteListItem) => n.title.trim() || t("notes.untitled")
 
-  const previewSnippet = useMemo(() => {
-    if (!selectedNote?.content) return ""
-    return selectedNote.content.replace(/\s+/g, " ").slice(0, 120)
-  }, [selectedNote?.content])
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setDebouncedSearch(searchInput.trim())
+  }
+
+  const handleClearSearch = () => {
+    setSearchInput("")
+    setDebouncedSearch("")
+  }
+
+  const previewSnippet = selectedNote?.content
+    ? selectedNote.content.replace(/\s+/g, " ").slice(0, 120)
+    : ""
 
   return (
     <div className="flex h-[calc(100dvh-3.5rem)] md:h-screen">
@@ -248,7 +271,7 @@ export default function NotesPage() {
           </Button>
         </div>
         <div className="px-3 pt-3 pb-2">
-          <div className="relative">
+          <form className="relative" onSubmit={handleSearchSubmit}>
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
             <input
               type="text"
@@ -260,14 +283,14 @@ export default function NotesPage() {
             {searchInput && (
               <button
                 type="button"
-                onClick={() => setSearchInput("")}
+                onClick={handleClearSearch}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 aria-label={t("common.close")}
               >
                 <XIcon className="h-4 w-4" />
               </button>
             )}
-          </div>
+          </form>
         </div>
 
         <div className="flex-1 overflow-y-auto px-2 pb-3">
