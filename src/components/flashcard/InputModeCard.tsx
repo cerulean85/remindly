@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge"
 import { CategoryBadge } from "@/components/categories/CategoryBadge"
 import { ImageGallery } from "@/components/ui/ImageGallery"
 import { CheckIcon, XIcon } from "@/components/ui/Icons"
+import { MarkdownPreview } from "@/components/notes/MarkdownPreview"
 import { cn } from "@/lib/utils"
 import type { Problem } from "@/types"
 import { useTranslation } from "react-i18next"
@@ -78,9 +79,7 @@ export function InputModeCard({ problem, onCorrect, onWrong, onSkip }: InputMode
               {isMatch ? <CheckIcon className="h-3.5 w-3.5" /> : <XIcon className="h-3.5 w-3.5" />}
               {t("learn.correctAnswer")}
             </p>
-            <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
-              {problem.answer}
-            </p>
+            <MarkdownPreview content={problem.answer} className="text-sm" />
             {problem.images.length > 0 && (
               <div className="mt-2">
                 <ImageGallery images={problem.images} size="sm" />

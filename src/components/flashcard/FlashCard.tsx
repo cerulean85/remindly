@@ -5,6 +5,7 @@ import type { Problem } from "@/types"
 import { CategoryBadge } from "@/components/categories/CategoryBadge"
 import { Badge } from "@/components/ui/Badge"
 import { ImageGallery } from "@/components/ui/ImageGallery"
+import { MarkdownPreview } from "@/components/notes/MarkdownPreview"
 
 interface FlashCardProps {
   problem: Problem
@@ -53,9 +54,7 @@ export function FlashCard({ problem, isFlipped, onClick, timeLeft, timerTotal }:
           style={{ transform: "rotateY(180deg)" }}
         >
           <p className="text-sm font-medium text-emerald-500 dark:text-emerald-400 mb-3">설명</p>
-          <p className="text-base text-gray-900 dark:text-gray-100 whitespace-pre-wrap leading-relaxed">
-            {problem.answer}
-          </p>
+          <MarkdownPreview content={problem.answer} className="text-base" />
           {problem.images.length > 0 && (
             <div className="mt-4">
               <ImageGallery images={problem.images} />

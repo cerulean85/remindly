@@ -2,8 +2,10 @@
 
 import { useRef, useState } from "react"
 import { Button } from "@/components/ui/Button"
+import { MarkdownPreview } from "@/components/notes/MarkdownPreview"
 import { TagInput } from "./TagInput"
 import { uploadImage } from "@/lib/uploadImage"
+import { cn } from "@/lib/utils"
 import type { Category, Problem } from "@/types"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
@@ -23,6 +25,7 @@ export function ProblemForm({ initial, categories, onSubmit, onCancel, isLoading
   const [keywords, setKeywords] = useState<string[]>(initial?.keywords ?? [])
   const [categoryId, setCategoryId] = useState<string>(initial?.categoryId ?? "")
   const [images, setImages] = useState<string[]>(initial?.images ?? [])
+  const [answerView, setAnswerView] = useState<"write" | "preview">("write")
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -71,16 +74,46 @@ export function ProblemForm({ initial, categories, onSubmit, onCancel, isLoading
       </div>
 
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {t("problems.answer")} *
-        </label>
-        <textarea
-          value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
-          required
-          rows={8}
-          className="w-full rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400 resize-y min-h-[10rem]"
-        />
+        <div className="mb-1.5 flex items-center justify-between gap-3">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {t("problems.answer")} *
+          </label>
+          <div className="flex rounded-lg border border-gray-200 dark:border-neutral-700 overflow-hidden text-xs">
+            {(["write", "preview"] as const).map((view) => (
+              <button
+                key={view}
+                type="button"
+                onClick={() => setAnswerView(view)}
+                className={cn(
+                  "px-2.5 py-1 transition-colors",
+                  answerView === view
+                    ? "bg-emerald-500 text-white"
+                    : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800"
+                )}
+              >
+                {view === "write" ? "작성" : "미리보기"}
+              </button>
+            ))}
+          </div>
+        </div>
+        {answerView === "write" ? (
+          <textarea
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            required
+            rows={8}
+            placeholder="Markdown"
+            className="w-full rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm font-mono leading-relaxed outline-none focus:ring-2 focus:ring-emerald-400 resize-y min-h-[10rem]"
+          />
+        ) : (
+          <div className="min-h-[10rem] rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2">
+            {answer.trim() ? (
+              <MarkdownPreview content={answer} />
+            ) : (
+              <p className="text-sm text-gray-400">미리볼 설명이 없습니다.</p>
+            )}
+          </div>
+        )}
       </div>
 
       <div>

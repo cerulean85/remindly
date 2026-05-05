@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react"
 import { Badge } from "@/components/ui/Badge"
 import { CategoryBadge } from "@/components/categories/CategoryBadge"
+import { MarkdownPreview } from "@/components/notes/MarkdownPreview"
 import { ImageGallery } from "@/components/ui/ImageGallery"
 import type { Problem } from "@/types"
 
@@ -89,9 +90,12 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete }: Probl
             {/* Answer */}
             <div>
               <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wide mb-1.5">설명</p>
-              <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">
-                {problem?.answer}
-              </p>
+              {problem?.answer && (
+                <MarkdownPreview
+                  content={problem.answer}
+                  className="text-sm text-gray-800 dark:text-gray-200"
+                />
+              )}
               {problem && problem.images.length > 0 && (
                 <div className="mt-4">
                   <ImageGallery images={problem.images} size="inline" />
