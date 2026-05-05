@@ -1,9 +1,12 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { useQuery } from "@tanstack/react-query"
-import { Modal } from "@/components/ui/Modal"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { ProblemDetailSheet } from "@/components/problems/ProblemDetailSheet"
+import { ProblemForm } from "@/components/problems/ProblemForm"
+import { ConfirmModal, Modal } from "@/components/ui/Modal"
 import { cn } from "@/lib/utils"
+import type { Category, Problem } from "@/types"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
@@ -53,14 +56,74 @@ function ratingDot(rating: string) {
 
 export default function RetrievalPage() {
   const { t } = useTranslation()
+  const queryClient = useQueryClient()
   const today = new Date()
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth() + 1)
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null)
+  const [detailId, setDetailId] = useState<string | null>(null)
+  const [editTarget, setEditTarget] = useState<Problem | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Problem | null>(null)
+
+  const { data: detailProblem } = useQuery<Problem>({
+    queryKey: ["problem", detailId],
+    queryFn: () => fetch(`/api/problems/${detailId}`).then((r) => r.json()),
+    enabled: !!detailId,
+  })
+
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ["categories"],
+    queryFn: () => fetch("/api/categories").then((r) => r.json()),
+  })
 
   const { data, isLoading } = useQuery<CalendarResponse>({
     queryKey: ["retrieval-calendar", year, month],
     queryFn: () => fetch(`/api/retrieval/calendar?year=${year}&month=${month}`).then((r) => r.json()),
+  })
+
+  const editMutation = useMutation({
+    mutationFn: async (data: { id: string; question: string; answer: string; keywords: string[]; categoryId: string | null; images: string[] }) => {
+      const r = await fetch(`/api/problems/${data.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+      if (!r.ok) throw new Error(await r.text())
+      return r.json() as Promise<Problem>
+    },
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["problem", updated.id], updated)
+      queryClient.invalidateQueries({ queryKey: ["retrieval-calendar"] })
+      queryClient.invalidateQueries({ queryKey: ["problems"] })
+      setSelectedDay((day) => day && {
+        ...day,
+        items: day.items.map((item) => item.problemId === updated.id
+          ? {
+              ...item,
+              question: updated.question,
+              category: updated.category
+                ? { id: updated.category.id, name: updated.category.name, color: updated.category.color }
+                : null,
+            }
+          : item),
+      })
+      setEditTarget(null)
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const r = await fetch(`/api/problems/${id}`, { method: "DELETE" })
+      if (!r.ok) throw new Error(await r.text())
+    },
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: ["retrieval-calendar"] })
+      queryClient.invalidateQueries({ queryKey: ["problems"] })
+      queryClient.removeQueries({ queryKey: ["problem", id] })
+      setSelectedDay(null)
+      setDetailId(null)
+      setDeleteTarget(null)
+    },
   })
 
   const dayMap = useMemo(() => {
@@ -174,9 +237,11 @@ export default function RetrievalPage() {
               <p className="text-sm text-gray-500">{t("retrieval.noEntries")}</p>
             ) : (
               selectedDay.items.map((item, idx) => (
-                <div
+                <button
+                  type="button"
                   key={`${item.problemId}-${idx}`}
-                  className="flex items-center gap-3 rounded-xl border border-gray-200 dark:border-neutral-800 px-3 py-2"
+                  onClick={() => setDetailId(item.problemId)}
+                  className="flex w-full items-center gap-3 rounded-xl border border-gray-200 dark:border-neutral-800 px-3 py-2 text-left transition-colors hover:bg-gray-50 dark:hover:bg-neutral-800/60"
                 >
                   {ratingDot(item.rating)}
                   <div className="flex-1 min-w-0">
@@ -188,12 +253,39 @@ export default function RetrievalPage() {
                   <span className="text-xs text-gray-400 shrink-0">
                     {new Date(item.studiedAt).toLocaleTimeString("ko", { hour: "2-digit", minute: "2-digit" })}
                   </span>
-                </div>
+                </button>
               ))
             )}
           </div>
         )}
       </Modal>
+
+      <ProblemDetailSheet
+        problem={detailId && detailProblem?.id === detailId ? detailProblem : null}
+        onClose={() => setDetailId(null)}
+        onEdit={setEditTarget}
+        onDelete={setDeleteTarget}
+      />
+
+      <Modal open={!!editTarget} onClose={() => setEditTarget(null)} title={t("problems.edit")}>
+        {editTarget && (
+          <ProblemForm
+            initial={editTarget}
+            categories={categories}
+            onSubmit={(data) => editMutation.mutateAsync({ id: editTarget.id, ...data })}
+            onCancel={() => setEditTarget(null)}
+            isLoading={editMutation.isPending}
+          />
+        )}
+      </Modal>
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
+        title={t("problems.delete")}
+        description={t("problems.deleteConfirm")}
+      />
     </div>
   )
 }
