@@ -272,7 +272,9 @@ export default function RetrievalPage() {
           <ProblemForm
             initial={editTarget}
             categories={categories}
-            onSubmit={(data) => editMutation.mutateAsync({ id: editTarget.id, ...data })}
+            onSubmit={async (data) => {
+              await editMutation.mutateAsync({ id: editTarget.id, ...data })
+            }}
             onCancel={() => setEditTarget(null)}
             isLoading={editMutation.isPending}
           />
