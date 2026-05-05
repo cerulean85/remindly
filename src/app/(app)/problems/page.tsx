@@ -501,7 +501,12 @@ export default function ProblemsPage() {
         </>
       )}
 
-      <Modal open={showAdd} onClose={() => setShowAdd(false)} title={t("problems.add")}>
+      <Modal
+        open={showAdd}
+        onClose={() => setShowAdd(false)}
+        title={t("problems.add")}
+        className="max-w-2xl max-h-[90dvh] overflow-y-auto"
+      >
         <ProblemForm
           categories={categories}
           onSubmit={(data) => createMutation.mutateAsync(data)}
@@ -510,7 +515,12 @@ export default function ProblemsPage() {
         />
       </Modal>
 
-      <Modal open={!!editTarget} onClose={() => setEditTarget(null)} title={t("problems.edit")}>
+      <Modal
+        open={!!editTarget}
+        onClose={() => setEditTarget(null)}
+        title={t("problems.edit")}
+        className="max-w-2xl max-h-[90dvh] overflow-y-auto"
+      >
         {editTarget && (
           <ProblemForm
             initial={editTarget}

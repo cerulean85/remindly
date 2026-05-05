@@ -101,12 +101,12 @@ export function ProblemForm({ initial, categories, onSubmit, onCancel, isLoading
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
             required
-            rows={8}
+            rows={14}
             placeholder="Markdown"
-            className="w-full rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm font-mono leading-relaxed outline-none focus:ring-2 focus:ring-emerald-400 resize-y min-h-[10rem]"
+            className="w-full rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm font-mono leading-relaxed outline-none focus:ring-2 focus:ring-emerald-400 resize-y min-h-[20rem]"
           />
         ) : (
-          <div className="min-h-[10rem] rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2">
+          <div className="min-h-[20rem] rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2">
             {answer.trim() ? (
               <MarkdownPreview content={answer} />
             ) : (

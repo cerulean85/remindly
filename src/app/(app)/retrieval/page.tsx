@@ -267,7 +267,12 @@ export default function RetrievalPage() {
         onDelete={setDeleteTarget}
       />
 
-      <Modal open={!!editTarget} onClose={() => setEditTarget(null)} title={t("problems.edit")}>
+      <Modal
+        open={!!editTarget}
+        onClose={() => setEditTarget(null)}
+        title={t("problems.edit")}
+        className="max-w-2xl max-h-[90dvh] overflow-y-auto"
+      >
         {editTarget && (
           <ProblemForm
             initial={editTarget}
