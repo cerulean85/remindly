@@ -25,11 +25,11 @@ export function FlashCard({ problem, isFlipped, onClick, timeLeft, timerTotal }:
     >
       {/* grid로 두 면이 같은 셀을 차지 → 높이 자동 결정 */}
       <div
-        className="w-full grid [transform-style:preserve-3d] transition-transform duration-500"
+        className="w-full grid h-[clamp(260px,58vh,520px)] [transform-style:preserve-3d] transition-transform duration-500"
         style={{ transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
       >
         {/* Front */}
-        <div className="[backface-visibility:hidden] [grid-area:1/1] flex flex-col justify-center min-h-[200px] rounded-2xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-sm p-6">
+        <div className="[backface-visibility:hidden] [grid-area:1/1] flex min-h-0 flex-col justify-center rounded-2xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-sm p-6">
           <div className="flex justify-between items-start mb-4">
             <CategoryBadge category={problem.category} />
             {showTimer ? (
@@ -50,23 +50,25 @@ export function FlashCard({ problem, isFlipped, onClick, timeLeft, timerTotal }:
 
         {/* Back */}
         <div
-          className="[backface-visibility:hidden] [grid-area:1/1] flex flex-col min-h-[200px] rounded-2xl bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 shadow-sm p-6"
+          className="[backface-visibility:hidden] [grid-area:1/1] flex min-h-0 flex-col rounded-2xl bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 shadow-sm p-6"
           style={{ transform: "rotateY(180deg)" }}
         >
-          <p className="text-sm font-medium text-emerald-500 dark:text-emerald-400 mb-3">설명</p>
-          <MarkdownPreview content={problem.answer} className="text-base" />
-          {problem.images.length > 0 && (
-            <div className="mt-4">
-              <ImageGallery images={problem.images} />
-            </div>
-          )}
-          {problem.keywords.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-1.5">
-              {problem.keywords.map((kw) => (
-                <Badge key={kw}>{kw}</Badge>
-              ))}
-            </div>
-          )}
+          <p className="mb-3 shrink-0 text-sm font-medium text-emerald-500 dark:text-emerald-400">설명</p>
+          <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+            <MarkdownPreview content={problem.answer} className="text-base" />
+            {problem.images.length > 0 && (
+              <div className="mt-4">
+                <ImageGallery images={problem.images} />
+              </div>
+            )}
+            {problem.keywords.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {problem.keywords.map((kw) => (
+                  <Badge key={kw}>{kw}</Badge>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
