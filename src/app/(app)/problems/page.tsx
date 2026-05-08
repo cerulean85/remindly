@@ -20,6 +20,7 @@ const PAGE_SIZE = 20
 
 type SortField = "createdAt" | "vividCount" | "lastStudiedAt" | "retrievalRate"
 type SortKey = `${SortField}:${"asc" | "desc"}`
+const DEFAULT_SORT_KEY: SortKey = "createdAt:desc"
 
 const SORT_OPTIONS: Array<{ key: SortKey; labelKey: string }> = [
   { key: "createdAt:desc", labelKey: "problems.sortNewest" },
@@ -195,7 +196,7 @@ export default function ProblemsPage() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
-  const [sortKey, setSortKey] = useState<SortKey>("createdAt:desc")
+  const [sortKey, setSortKey] = useState<SortKey>(DEFAULT_SORT_KEY)
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
 
   useEffect(() => {
@@ -306,7 +307,15 @@ export default function ProblemsPage() {
     setDebouncedSearch("")
   }
 
+  const handleResetFilters = () => {
+    setSelectedCategoryId(null)
+    setSearchInput("")
+    setDebouncedSearch("")
+    setSortKey(DEFAULT_SORT_KEY)
+  }
+
   const isSearching = debouncedSearch.length > 0
+  const hasActiveFilters = selectedCategoryId !== null || isSearching || searchInput.trim().length > 0 || sortKey !== DEFAULT_SORT_KEY
   const isEmpty = items.length === 0
 
   return (
@@ -318,8 +327,8 @@ export default function ProblemsPage() {
         </Button>
       </div>
 
-      <div className="mb-3 flex gap-2">
-        <form className="flex-1 relative" onSubmit={handleSearchSubmit}>
+      <div className="mb-3 flex flex-wrap gap-2">
+        <form className="min-w-[14rem] flex-1 relative" onSubmit={handleSearchSubmit}>
           <svg
             className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none"
             fill="none"
@@ -351,13 +360,22 @@ export default function ProblemsPage() {
         <select
           value={sortKey}
           onChange={(e) => setSortKey(e.target.value as SortKey)}
-          className="rounded-full border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+          className="shrink-0 rounded-full border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
         >
           {SORT_OPTIONS.map((opt) => (
             <option key={opt.key} value={opt.key}>{t(opt.labelKey)}</option>
           ))}
         </select>
-        <div className="flex rounded-full border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 overflow-hidden">
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            className="shrink-0 rounded-full border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-neutral-800"
+          >
+            {t("problems.resetFilters")}
+          </button>
+        )}
+        <div className="shrink-0 flex rounded-full border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 overflow-hidden">
           <button
             type="button"
             onClick={() => setViewMode("grid")}

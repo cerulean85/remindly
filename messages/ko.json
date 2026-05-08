@@ -69,6 +69,7 @@
     "sortStale": "오래 안한순",
     "viewGrid": "그리드 보기",
     "viewList": "리스트 보기",
+    "resetFilters": "필터 초기화",
     "allLoaded": "전체 {{count}}개를 모두 불러왔습니다."
   },
   "mistakes": {

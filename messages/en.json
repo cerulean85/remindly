@@ -69,6 +69,7 @@
     "sortStale": "Long unstudied",
     "viewGrid": "Grid view",
     "viewList": "List view",
+    "resetFilters": "Reset filters",
     "allLoaded": "All {{count}} loaded."
   },
   "mistakes": {
