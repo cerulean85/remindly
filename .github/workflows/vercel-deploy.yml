@@ -16,13 +16,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install Vercel CLI
-        run: npm install --global vercel@latest
+        run: npm install --global vercel        # ← 여기만 수정
 
       - name: Pull Vercel Environment
         run: vercel pull --yes --environment=production
 
       - name: Build Project
-        run: vercel build --prod          # ← 여기 --prod 추가!
+        run: vercel build --prod
 
       - name: Deploy to Vercel
         run: vercel deploy --prebuilt --prod
