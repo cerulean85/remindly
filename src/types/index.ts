@@ -19,6 +19,7 @@ export interface Problem {
   updatedAt: string
   category?: Category | null
   mistakeNote?: MistakeNote | null
+  mistakeRecordCount?: number
   retrievalRate?: number | null
   totalCount?: number
   lastStudiedAt?: string | null
@@ -55,4 +56,13 @@ export interface StudyLogEntry {
   rating: "empty" | "blurry" | "vivid"
   studiedAt: string
   problem?: Problem
+}
+
+export interface MistakeRecord {
+  id: string
+  problemId: string
+  userId: string
+  content: string
+  createdAt: string
+  updatedAt: string
 }

@@ -35,7 +35,17 @@
     "checkAnswer": "Check",
     "correctAnswer": "Description",
     "markCorrect": "Correct",
-    "markWrong": "Wrong"
+    "markWrong": "Wrong",
+    "retrievalRate": "Accuracy",
+    "wrongCount": "Wrong",
+    "studyCount": "Studied",
+    "mistakeRecordCount": "Mistake records",
+    "addMistakeRecord": "Record mistake",
+    "mistakeRecords": "Mistake Records",
+    "noMistakeRecords": "No mistake records yet.",
+    "recordPlaceholder": "Write why this was recorded as a mistake.",
+    "deleteRecord": "Delete Mistake Record",
+    "deleteRecordConfirm": "Delete this mistake record?"
   },
   "problems": {
     "title": "Problem Management",

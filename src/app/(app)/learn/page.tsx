@@ -75,6 +75,7 @@ function LearnSession({
       {current && mode === "flashcard" && (
         <>
           <FlashCard
+            key={current.id}
             problem={current}
             isFlipped={isFlipped}
             onClick={flip}

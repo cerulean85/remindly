@@ -26,7 +26,9 @@ type ProblemWithStats = {
     createdAt: Date
     updatedAt: Date
   } | null
+  _count: { mistakeRecords: number }
   retrievalRate: number | null
+  mistakeRecordCount: number
   totalCount: number
   lastStudiedAt: Date | null
 }
@@ -39,6 +41,7 @@ function withStats(problems: Awaited<ReturnType<typeof fetchProblems>>): Problem
     return {
       ...p,
       retrievalRate: rate,
+      mistakeRecordCount: p._count.mistakeRecords,
       totalCount: total,
       lastStudiedAt: note?.lastStudiedAt ?? null,
     }
@@ -87,7 +90,11 @@ async function fetchProblems(
   }
   return prisma.problem.findMany({
     where,
-    include: { category: true, mistakeNote: true },
+    include: {
+      category: true,
+      mistakeNote: true,
+      _count: { select: { mistakeRecords: true } },
+    },
     orderBy: args.orderBy,
     ...(args.skip !== undefined && { skip: args.skip }),
     ...(args.take !== undefined && { take: args.take }),

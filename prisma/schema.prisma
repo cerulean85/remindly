@@ -23,6 +23,7 @@ model User {
   categories   Category[]
   problems     Problem[]
   mistakeNotes MistakeNote[]
+  mistakeRecords MistakeRecord[]
   studyLogs    StudyLog[]
   notes        Note[]
 }
@@ -91,6 +92,7 @@ model Problem {
   category    Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   mistakeNote MistakeNote?
+  mistakeRecords MistakeRecord[]
   studyLogs   StudyLog[]
 
   @@index([userId, retrievalRate])
@@ -115,6 +117,21 @@ model MistakeNote {
   @@index([userId, skipCount, blurryCount, vividCount])
   @@index([userId, retrievalRate])
   @@index([userId, lastStudiedAt])
+}
+
+model MistakeRecord {
+  id        String   @id @default(cuid())
+  problemId String
+  userId    String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([problemId, createdAt])
+  @@index([userId, createdAt])
 }
 
 model Note {

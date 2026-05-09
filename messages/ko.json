@@ -35,7 +35,17 @@
     "checkAnswer": "확인",
     "correctAnswer": "설명",
     "markCorrect": "맞았어요",
-    "markWrong": "틀렸어요"
+    "markWrong": "틀렸어요",
+    "retrievalRate": "정답률",
+    "wrongCount": "오답",
+    "studyCount": "학습",
+    "mistakeRecordCount": "오답 기록",
+    "addMistakeRecord": "오답 기록",
+    "mistakeRecords": "오답 기록 목록",
+    "noMistakeRecords": "작성된 오답 기록이 없습니다.",
+    "recordPlaceholder": "오답으로 기록하게 된 사유를 작성하세요.",
+    "deleteRecord": "오답 기록 삭제",
+    "deleteRecordConfirm": "이 오답 기록을 삭제하시겠습니까?"
   },
   "problems": {
     "title": "주제 관리",
