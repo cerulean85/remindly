@@ -1,13 +1,12 @@
 name: Vercel Manual Deploy
 
 on:
-  workflow_dispatch:   # GitHub에서 수동 실행 버튼
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     
-    # ✅ 모든 Vercel 명령어가 토큰을 사용할 수 있도록 job 레벨에 env 설정
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -23,7 +22,7 @@ jobs:
         run: vercel pull --yes --environment=production
 
       - name: Build Project
-        run: vercel build
+        run: vercel build --prod          # ← 여기 --prod 추가!
 
       - name: Deploy to Vercel
         run: vercel deploy --prebuilt --prod
