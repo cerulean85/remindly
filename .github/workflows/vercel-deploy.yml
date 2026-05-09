@@ -1,22 +1,29 @@
 name: Vercel Manual Deploy
 
 on:
-  workflow_dispatch:  # ← 이게 수동 버튼
+  workflow_dispatch:   # GitHub에서 수동 실행 버튼
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    
+    # ✅ 모든 Vercel 명령어가 토큰을 사용할 수 있도록 job 레벨에 env 설정
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
-      - name: Pull Vercel env
+
+      - name: Pull Vercel Environment
         run: vercel pull --yes --environment=production
-      - name: Build
+
+      - name: Build Project
         run: vercel build
-      - name: Deploy
+
+      - name: Deploy to Vercel
         run: vercel deploy --prebuilt --prod
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
