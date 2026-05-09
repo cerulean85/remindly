@@ -1,12 +1,10 @@
-import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/authOptions"
+import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { withAuth } from "@/lib/withAuth"
 
-export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  const userId = session.user.id
+type RouteCtx = { params: Promise<{ id: string }> }
+
+export const PATCH = withAuth<RouteCtx>(async (req, { userId, params }) => {
   const { id } = await params
 
   const { content } = await req.json()
@@ -27,12 +25,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   })
 
   return NextResponse.json(record)
-}
+})
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  const userId = session.user.id
+export const DELETE = withAuth<RouteCtx>(async (_req, { userId, params }) => {
   const { id } = await params
 
   const existing = await prisma.mistakeRecord.findFirst({
@@ -43,4 +38,4 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
 
   await prisma.mistakeRecord.delete({ where: { id } })
   return NextResponse.json({ success: true })
-}
+})

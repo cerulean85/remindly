@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/authOptions"
+import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { withAuth } from "@/lib/withAuth"
+
+type RouteCtx = { params: Promise<{ id: string }> }
 
 async function getOwnedProblem(problemId: string, userId: string) {
   return prisma.problem.findFirst({
@@ -10,10 +11,7 @@ async function getOwnedProblem(problemId: string, userId: string) {
   })
 }
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  const userId = session.user.id
+export const GET = withAuth<RouteCtx>(async (_req, { userId, params }) => {
   const { id: problemId } = await params
 
   const problem = await getOwnedProblem(problemId, userId)
@@ -25,12 +23,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   })
 
   return NextResponse.json(records)
-}
+})
 
-export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  const userId = session.user.id
+export const POST = withAuth<RouteCtx>(async (req, { userId, params }) => {
   const { id: problemId } = await params
 
   const problem = await getOwnedProblem(problemId, userId)
@@ -47,4 +42,4 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   })
 
   return NextResponse.json(record, { status: 201 })
-}
+})

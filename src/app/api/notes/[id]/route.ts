@@ -1,26 +1,23 @@
-import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/authOptions"
+import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { withAuth } from "@/lib/withAuth"
+
+type RouteCtx = { params: Promise<{ id: string }> }
 
 async function getOwned(id: string, userId: string) {
   return prisma.note.findFirst({ where: { id, userId } })
 }
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+export const GET = withAuth<RouteCtx>(async (_req, { userId, params }) => {
   const { id } = await params
-  const note = await getOwned(id, session.user.id)
+  const note = await getOwned(id, userId)
   if (!note) return NextResponse.json({ error: "Not found" }, { status: 404 })
   return NextResponse.json(note)
-}
+})
 
-export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+export const PATCH = withAuth<RouteCtx>(async (req, { userId, params }) => {
   const { id } = await params
-  const owned = await getOwned(id, session.user.id)
+  const owned = await getOwned(id, userId)
   if (!owned) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
   const body = await req.json().catch(() => ({}))
@@ -33,15 +30,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const note = await prisma.note.update({ where: { id }, data })
   return NextResponse.json(note)
-}
+})
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+export const DELETE = withAuth<RouteCtx>(async (_req, { userId, params }) => {
   const { id } = await params
-  const owned = await getOwned(id, session.user.id)
+  const owned = await getOwned(id, userId)
   if (!owned) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
   await prisma.note.delete({ where: { id } })
   return new NextResponse(null, { status: 204 })
-}
+})

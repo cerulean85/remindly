@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/authOptions"
 import { prisma } from "@/lib/prisma"
+import { retrievalStats } from "@/lib/stats"
+import { withAuth } from "@/lib/withAuth"
 
 type Level = "vivid" | "blurry" | "empty"
 
@@ -22,11 +22,7 @@ function classify(rate: number | null, total: number, threshold: number): Level 
   return "empty"
 }
 
-export async function GET() {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  const userId = session.user.id
-
+export const GET = withAuth(async (_req, { userId }) => {
   const [user, problems] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
@@ -46,8 +42,7 @@ export async function GET() {
   const byLevel: Record<Level, ProblemSummary[]> = { vivid: [], blurry: [], empty: [] }
   const enriched = problems.map((p) => {
     const note = p.mistakeNote
-    const total = note ? note.skipCount + note.blurryCount + note.vividCount : 0
-    const rate = total > 0 ? Math.round(((note?.vividCount ?? 0) / total) * 100) : null
+    const { total, rate } = retrievalStats(note)
     const level = classify(rate, total, threshold)
     const summary: ProblemSummary = {
       id: p.id,
@@ -103,4 +98,4 @@ export async function GET() {
     byLevel,
     priority,
   })
-}
+})

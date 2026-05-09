@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/authOptions"
+import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { retrievalRate } from "@/lib/stats"
+import { withAuth } from "@/lib/withAuth"
 
 const RATING_TO_FIELD = {
   skip: "skipCount",
@@ -16,11 +16,9 @@ const RATING_TO_LOG = {
 } as const
 
 type Rating = keyof typeof RATING_TO_FIELD
+type RouteCtx = { params: Promise<{ problemId: string }> }
 
-export async function PATCH(req: NextRequest, { params }: { params: Promise<{ problemId: string }> }) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  const userId = session.user.id
+export const PATCH = withAuth<RouteCtx>(async (req, { userId, params }) => {
   const { problemId } = await params
 
   const problem = await prisma.problem.findFirst({ where: { id: problemId, userId } })
@@ -44,8 +42,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pr
       update: { [field]: { increment: 1 }, lastStudiedAt: studiedAt },
       create: { problemId, userId, [field]: 1, lastStudiedAt: studiedAt },
     })
-    const total = updated.skipCount + updated.blurryCount + updated.vividCount
-    const rate = total > 0 ? Math.round((updated.vividCount / total) * 100) : 0
+    const rate = retrievalRate(updated) ?? 0
     const [, finalNote] = await Promise.all([
       tx.problem.update({ where: { id: problemId }, data: { retrievalRate: rate } }),
       tx.mistakeNote.update({ where: { id: updated.id }, data: { retrievalRate: rate } }),
@@ -54,12 +51,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pr
   })
 
   return NextResponse.json(note)
-}
+})
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ problemId: string }> }) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  const userId = session.user.id
+export const DELETE = withAuth<RouteCtx>(async (_req, { userId, params }) => {
   const { problemId } = await params
 
   const note = await prisma.mistakeNote.findFirst({ where: { problemId, userId } })
@@ -67,4 +61,4 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
 
   await prisma.mistakeNote.delete({ where: { id: note.id } })
   return NextResponse.json({ success: true })
-}
+})

@@ -1,26 +1,17 @@
-import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/authOptions"
+import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { withAuth } from "@/lib/withAuth"
 
-export async function GET() {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  const userId = session.user.id
-
+export const GET = withAuth(async (_req, { userId }) => {
   const categories = await prisma.category.findMany({
     where: { userId },
     orderBy: { createdAt: "asc" },
     include: { _count: { select: { problems: true } } },
   })
   return NextResponse.json(categories)
-}
+})
 
-export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  const userId = session.user.id
-
+export const POST = withAuth(async (req, { userId }) => {
   const { name, color } = await req.json()
   if (!name?.trim() || !color) {
     return NextResponse.json({ error: "name and color are required" }, { status: 400 })
@@ -34,4 +25,4 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Category name already exists" }, { status: 409 })
   }
-}
+})

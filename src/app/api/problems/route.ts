@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/authOptions"
+import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { retrievalStats } from "@/lib/stats"
+import { withAuth } from "@/lib/withAuth"
 import type { Prisma } from "@prisma/client"
 
 type ProblemWithStats = {
@@ -35,15 +35,13 @@ type ProblemWithStats = {
 
 function withStats(problems: Awaited<ReturnType<typeof fetchProblems>>): ProblemWithStats[] {
   return problems.map((p) => {
-    const note = p.mistakeNote
-    const total = note ? note.skipCount + note.blurryCount + note.vividCount : 0
-    const rate = total > 0 ? Math.round(((note?.vividCount ?? 0) / total) * 100) : null
+    const { total, rate } = retrievalStats(p.mistakeNote)
     return {
       ...p,
       retrievalRate: rate,
       mistakeRecordCount: p._count.mistakeRecords,
       totalCount: total,
-      lastStudiedAt: note?.lastStudiedAt ?? null,
+      lastStudiedAt: p.mistakeNote?.lastStudiedAt ?? null,
     }
   })
 }
@@ -117,11 +115,7 @@ async function countProblems(userId: string, categoryId: string | null, search: 
   })
 }
 
-export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  const userId = session.user.id
-
+export const GET = withAuth(async (req, { userId }) => {
   const { searchParams } = new URL(req.url)
   const categoryId = searchParams.get("categoryId")
   const priority = searchParams.get("priority") === "true"
@@ -183,13 +177,9 @@ export async function GET(req: NextRequest) {
 
   const raw = await fetchProblems(userId, { categoryId, search, orderBy })
   return NextResponse.json(withStats(raw))
-}
+})
 
-export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  const userId = session.user.id
-
+export const POST = withAuth(async (req, { userId }) => {
   const { question, answer, keywords, categoryId, images } = await req.json()
   if (!question?.trim() || !answer?.trim()) {
     return NextResponse.json({ error: "question and answer are required" }, { status: 400 })
@@ -207,4 +197,4 @@ export async function POST(req: NextRequest) {
     include: { category: true },
   })
   return NextResponse.json(problem, { status: 201 })
-}
+})
