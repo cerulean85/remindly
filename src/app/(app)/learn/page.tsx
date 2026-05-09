@@ -74,14 +74,6 @@ function LearnSession({
 
       {current && mode === "flashcard" && (
         <>
-          <FlashCard
-            key={current.id}
-            problem={current}
-            isFlipped={isFlipped}
-            onClick={flip}
-            timeLeft={timerSeconds > 0 ? timeLeft : null}
-            timerTotal={timerSeconds}
-          />
           <LearningControls
             hasPrev={index > 0}
             onPrev={prev}
@@ -89,6 +81,14 @@ function LearnSession({
             onMarkWrong={() => next("skip")}
             onBlurry={() => next("blurry")}
             onKnow={() => next("vivid")}
+          />
+          <FlashCard
+            key={current.id}
+            problem={current}
+            isFlipped={isFlipped}
+            onClick={flip}
+            timeLeft={timerSeconds > 0 ? timeLeft : null}
+            timerTotal={timerSeconds}
           />
         </>
       )}
