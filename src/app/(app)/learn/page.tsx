@@ -83,10 +83,8 @@ function LearnSession({
             timerTotal={timerSeconds}
           />
           <LearningControls
-            isFlipped={isFlipped}
             hasPrev={index > 0}
             onPrev={prev}
-            onFlip={flip}
             onSkip={() => next()}
             onMarkWrong={() => next("skip")}
             onBlurry={() => next("blurry")}

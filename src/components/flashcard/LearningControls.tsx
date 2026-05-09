@@ -6,10 +6,8 @@ import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
 interface LearningControlsProps {
-  isFlipped: boolean
   hasPrev: boolean
   onPrev: () => void
-  onFlip: () => void
   onSkip: () => void
   onMarkWrong: () => void
   onBlurry: () => void
@@ -28,7 +26,7 @@ const blurryClass =
 const vividClass =
   "bg-emerald-500 text-white hover:bg-emerald-600 focus-visible:ring-emerald-500"
 
-export function LearningControls({ isFlipped, hasPrev, onPrev, onFlip, onSkip, onMarkWrong, onBlurry, onKnow }: LearningControlsProps) {
+export function LearningControls({ hasPrev, onPrev, onSkip, onMarkWrong, onBlurry, onKnow }: LearningControlsProps) {
   const { t } = useTranslation()
 
   return (
@@ -51,11 +49,6 @@ export function LearningControls({ isFlipped, hasPrev, onPrev, onFlip, onSkip, o
         <Button variant="secondary" className="flex-1" onClick={onSkip}>
           {t("learn.skip")}
         </Button>
-        {!isFlipped && (
-          <Button className="flex-1" onClick={onFlip}>
-            {t("learn.flip")}
-          </Button>
-        )}
       </div>
     </div>
   )
