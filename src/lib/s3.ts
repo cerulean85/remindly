@@ -1,8 +1,8 @@
 import { S3Client, DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 
-const region = process.env.AWS_REGION || process.env.S3_REGION
-const bucket = process.env.AWS_S3_BUCKET || process.env.S3_BUCKET_NAME
+const region = process.env.AWS_REGION || process.env.S3_REGION || "ap-northeast-2"
+const bucket = process.env.AWS_S3_BUCKET || process.env.S3_BUCKET_NAME || "earthling-cube-s3"
 const publicBaseUrl = process.env.AWS_S3_PUBLIC_BASE_URL || `https://${bucket}.s3.${region}.amazonaws.com`
 
 export const s3 = new S3Client({
