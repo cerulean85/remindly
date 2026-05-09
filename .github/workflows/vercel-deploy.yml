@@ -1,0 +1,22 @@
+name: Vercel Manual Deploy
+
+on:
+  workflow_dispatch:  # ← 이게 수동 버튼
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Pull Vercel env
+        run: vercel pull --yes --environment=production
+      - name: Build
+        run: vercel build
+      - name: Deploy
+        run: vercel deploy --prebuilt --prod
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
