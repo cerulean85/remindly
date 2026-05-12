@@ -113,6 +113,26 @@ export function XIcon(props: IconProps) {
   )
 }
 
+export function SidebarToggleIcon(props: IconProps) {
+  return (
+    <svg {...svgBase(undefined, props)}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <line x1="9" y1="4" x2="9" y2="20" />
+    </svg>
+  )
+}
+
+export function PreviewToggleIcon(props: IconProps) {
+  return (
+    <svg {...svgBase(undefined, props)}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <line x1="14" y1="5" x2="14" y2="19" />
+      <path d="M7 9h3" />
+      <path d="M7 13h3" />
+    </svg>
+  )
+}
+
 export function HalfCircleIcon(props: IconProps) {
   return (
     <svg {...svgBase(undefined, props)}>

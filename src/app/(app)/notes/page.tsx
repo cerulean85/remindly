@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/Button"
 import { ConfirmModal } from "@/components/ui/Modal"
 import { MarkdownPreview } from "@/components/notes/MarkdownPreview"
-import { SearchIcon, XIcon } from "@/components/ui/Icons"
+import { PreviewToggleIcon, SearchIcon, SidebarToggleIcon, XIcon } from "@/components/ui/Icons"
 import { uploadImage } from "@/lib/uploadImage"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
@@ -23,6 +23,8 @@ type Note = NoteListItem & { content: string }
 type ViewMode = "edit" | "preview" | "split"
 
 const VIEW_STORAGE_KEY = "notes.viewMode"
+const SIDEBAR_STORAGE_KEY = "notes.sidebarCollapsed"
+const PREVIEW_STORAGE_KEY = "notes.previewCollapsed"
 
 function formatDate(iso: string) {
   const d = new Date(iso)
@@ -45,6 +47,8 @@ export default function NotesPage() {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>("split")
   const [showSidebar, setShowSidebar] = useState(true)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [previewCollapsed, setPreviewCollapsed] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -127,6 +131,32 @@ export default function NotesPage() {
     if (typeof window === "undefined") return
     window.localStorage.setItem(VIEW_STORAGE_KEY, viewMode)
   }, [viewMode])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const storedSidebar = window.localStorage.getItem(SIDEBAR_STORAGE_KEY)
+    const storedPreview = window.localStorage.getItem(PREVIEW_STORAGE_KEY)
+
+    let active = true
+    queueMicrotask(() => {
+      if (!active) return
+      setSidebarCollapsed(storedSidebar === "true")
+      setPreviewCollapsed(storedPreview === "true")
+    })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(sidebarCollapsed))
+  }, [sidebarCollapsed])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem(PREVIEW_STORAGE_KEY, String(previewCollapsed))
+  }, [previewCollapsed])
 
   const { data: notes = [], isLoading } = useQuery<NoteListItem[]>({
     queryKey: ["notes", debouncedSearch],
@@ -251,19 +281,37 @@ export default function NotesPage() {
     ? selectedNote.content.replace(/\s+/g, " ").slice(0, 120)
     : ""
 
+  const showEditorPane = viewMode === "edit" || viewMode === "split"
+  const showPreviewPane = viewMode === "preview" || (viewMode === "split" && !previewCollapsed)
+
   return (
     <div className="flex h-[calc(100dvh-3.5rem)] md:h-screen">
       <aside
         className={cn(
           "flex flex-col border-r border-gray-200 dark:border-neutral-800 bg-white dark:bg-black",
-          showSidebar ? "flex w-full md:w-80 shrink-0" : "hidden md:flex md:w-80 md:shrink-0"
+          sidebarCollapsed
+            ? showSidebar
+              ? "flex w-full md:hidden"
+              : "hidden"
+            : showSidebar
+            ? "flex w-full md:w-80 shrink-0"
+            : "hidden md:flex md:w-80 md:shrink-0"
         )}
       >
         <div className="p-4 border-b border-gray-200 dark:border-neutral-800 flex items-center gap-2">
           <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">{t("notes.title")}</h1>
+          <button
+            type="button"
+            onClick={() => setSidebarCollapsed(true)}
+            className="hidden md:inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-neutral-800 dark:hover:text-gray-100"
+            aria-label={t("notes.collapseList")}
+            title={t("notes.collapseList")}
+          >
+            <SidebarToggleIcon className="h-4 w-4" />
+          </button>
           <Button
             size="sm"
-            className="ml-auto"
+            className="ml-auto md:ml-0"
             onClick={() => createMutation.mutate()}
             disabled={createMutation.isPending}
           >
@@ -336,10 +384,21 @@ export default function NotesPage() {
 
       <section
         className={cn(
-          "flex-1 flex flex-col bg-white dark:bg-black",
+          "relative flex-1 flex flex-col bg-white dark:bg-black",
           showSidebar ? "hidden md:flex" : "flex"
         )}
       >
+        {sidebarCollapsed && (!selectedId || !selectedNote) && (
+          <button
+            type="button"
+            onClick={() => setSidebarCollapsed(false)}
+            className="hidden md:inline-flex absolute left-3 top-3 z-10 h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-sm hover:bg-gray-50 hover:text-gray-900 dark:border-neutral-700 dark:bg-black dark:text-gray-400 dark:hover:bg-neutral-900 dark:hover:text-gray-100"
+            aria-label={t("notes.expandList")}
+            title={t("notes.expandList")}
+          >
+            <SidebarToggleIcon className="h-4 w-4" />
+          </button>
+        )}
         {!selectedId || !selectedNote ? (
           <div className="flex flex-1 items-center justify-center text-sm text-gray-400">
             {t("notes.selectOrCreate")}
@@ -355,6 +414,17 @@ export default function NotesPage() {
               >
                 ←
               </button>
+              {sidebarCollapsed && (
+                <button
+                  type="button"
+                  onClick={() => setSidebarCollapsed(false)}
+                  className="hidden md:inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-neutral-800 dark:hover:text-gray-100"
+                  aria-label={t("notes.expandList")}
+                  title={t("notes.expandList")}
+                >
+                  <SidebarToggleIcon className="h-4 w-4" />
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => imageInputRef.current?.click()}
@@ -398,6 +468,16 @@ export default function NotesPage() {
               </div>
               <button
                 type="button"
+                onClick={() => setPreviewCollapsed((prev) => !prev)}
+                disabled={viewMode !== "split"}
+                className="hidden md:inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-40 dark:text-gray-400 dark:hover:bg-neutral-800 dark:hover:text-gray-100"
+                aria-label={previewCollapsed ? t("notes.expandPreview") : t("notes.collapsePreview")}
+                title={previewCollapsed ? t("notes.expandPreview") : t("notes.collapsePreview")}
+              >
+                <PreviewToggleIcon className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
                 onClick={() => setPendingDeleteId(selectedId)}
                 className="text-xs text-gray-500 hover:text-red-500 px-2 py-1"
               >
@@ -414,11 +494,11 @@ export default function NotesPage() {
             />
 
             <div className="flex flex-1 min-h-0 overflow-hidden border-t border-gray-100 dark:border-neutral-800">
-              {(viewMode === "edit" || viewMode === "split") && (
+              {showEditorPane && (
                 <div
                   className={cn(
                     "flex-1 min-w-0 relative",
-                    viewMode === "split" && "border-r border-gray-200 dark:border-neutral-800"
+                    showPreviewPane && "border-r border-gray-200 dark:border-neutral-800"
                   )}
                 >
                   <textarea
@@ -445,7 +525,7 @@ export default function NotesPage() {
                   )}
                 </div>
               )}
-              {(viewMode === "preview" || viewMode === "split") && (
+              {showPreviewPane && (
                 <div className="flex-1 min-w-0 overflow-y-auto px-6 py-4">
                   {draftContent.trim() ? (
                     <MarkdownPreview content={draftContent} />

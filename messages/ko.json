@@ -170,6 +170,10 @@
     "uploading": "업로드 중...",
     "dropImage": "이미지를 놓으면 첨부됩니다",
     "backToList": "목록으로",
+    "collapseList": "메모 목록 접기",
+    "expandList": "메모 목록 펼치기",
+    "collapsePreview": "미리보기 접기",
+    "expandPreview": "미리보기 펼치기",
     "view": {
       "edit": "편집",
       "split": "분할",

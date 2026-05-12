@@ -170,6 +170,10 @@
     "uploading": "Uploading...",
     "dropImage": "Drop to attach image",
     "backToList": "Back",
+    "collapseList": "Collapse note list",
+    "expandList": "Expand note list",
+    "collapsePreview": "Collapse preview",
+    "expandPreview": "Expand preview",
     "view": {
       "edit": "Edit",
       "split": "Split",
