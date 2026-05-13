@@ -5,20 +5,16 @@ import { useQuery } from "@tanstack/react-query"
 import { useFlashcard } from "@/hooks/useFlashcard"
 import { FlashCard } from "@/components/flashcard/FlashCard"
 import { LearningControls } from "@/components/flashcard/LearningControls"
-import { InputModeCard } from "@/components/flashcard/InputModeCard"
 import { FlashcardSkeleton } from "@/components/ui/Skeleton"
 import { Button } from "@/components/ui/Button"
 import { LearnIcon, TrophyIcon } from "@/components/ui/Icons"
-import { cn } from "@/lib/utils"
 import type { Category, Problem } from "@/types"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
-type LearnMode = "flashcard" | "input"
-
 function ProgressBar({ index, total }: { index: number; total: number }) {
   return (
-    <div className="flex items-center gap-4 text-sm text-gray-500">
+    <div className="flex flex-1 items-center gap-4 text-sm text-gray-500">
       <span>{index + 1} / {total}</span>
       <div className="h-1.5 flex-1 rounded-full bg-gray-200 dark:bg-neutral-800">
         <div
@@ -32,19 +28,19 @@ function ProgressBar({ index, total }: { index: number; total: number }) {
 
 function LearnSession({
   problems,
-  mode,
   problemLimit,
   timerSeconds,
+  storageKey,
 }: {
   problems: Problem[]
-  mode: LearnMode
   problemLimit: number | null
   timerSeconds: number
+  storageKey: string
 }) {
   const { t } = useTranslation()
   const { current, index, total, isFlipped, isComplete, timeLeft, flip, next, prev, restart } = useFlashcard(
     problems,
-    { limit: problemLimit, timerSeconds: mode === "flashcard" ? timerSeconds : 0 }
+    { limit: problemLimit, timerSeconds, storageKey }
   )
 
   if (total === 0) {
@@ -63,16 +59,21 @@ function LearnSession({
         <TrophyIcon className="h-10 w-10 mb-3 text-amber-500" />
         <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">{t("learn.complete")}</p>
         <p className="text-sm text-gray-500 mb-6">{t("learn.completeMessage")}</p>
-        <Button onClick={restart}>다시 시작</Button>
+        <Button onClick={restart}>{t("learn.restart")}</Button>
       </div>
     )
   }
 
   return (
     <div className="flex flex-col gap-6">
-      <ProgressBar index={index} total={total} />
+      <div className="flex items-center gap-3">
+        <ProgressBar index={index} total={total} />
+        <Button variant="secondary" className="shrink-0 px-3" onClick={restart}>
+          {t("learn.restart")}
+        </Button>
+      </div>
 
-      {current && mode === "flashcard" && (
+      {current && (
         <>
           <LearningControls
             hasPrev={index > 0}
@@ -92,16 +93,6 @@ function LearnSession({
           />
         </>
       )}
-
-      {current && mode === "input" && (
-        <InputModeCard
-          key={current.id}
-          problem={current}
-          onCorrect={() => next("vivid")}
-          onWrong={() => next("skip")}
-          onSkip={() => next()}
-        />
-      )}
     </div>
   )
 }
@@ -112,7 +103,6 @@ const TIMER_OPTIONS = [0, 10, 20, 30, 60]
 export default function LearnPage() {
   const { t } = useTranslation()
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("")
-  const [mode, setMode] = useState<LearnMode>("flashcard")
   const [problemLimit, setProblemLimit] = useState<number | null>(20)
   const [timerSeconds, setTimerSeconds] = useState<number>(0)
 
@@ -129,6 +119,14 @@ export default function LearnPage() {
       return fetch(`/api/problems?${params.toString()}`).then((r) => r.json())
     },
   })
+
+  const sessionKey = [
+    "remindly",
+    "learn-session",
+    selectedCategoryId || "all",
+    problemLimit ?? "all",
+    timerSeconds,
+  ].join(":")
 
   return (
     <div className="mx-auto max-w-lg px-4 py-6">
@@ -148,23 +146,6 @@ export default function LearnPage() {
             ))}
           </select>
         </div>
-      </div>
-
-      <div className="mb-3 flex rounded-xl border border-gray-200 dark:border-neutral-800 overflow-hidden">
-        {(["flashcard", "input"] as LearnMode[]).map((m) => (
-          <button
-            key={m}
-            onClick={() => setMode(m)}
-            className={cn(
-              "flex-1 py-2 text-sm font-medium transition-colors",
-              mode === m
-                ? "bg-emerald-500 text-white"
-                : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-800"
-            )}
-          >
-            {m === "flashcard" ? t("learn.modeFlashcard") : t("learn.modeInput")}
-          </button>
-        ))}
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-2">
@@ -187,8 +168,7 @@ export default function LearnPage() {
           <select
             value={timerSeconds}
             onChange={(e) => setTimerSeconds(Number(e.target.value))}
-            disabled={mode !== "flashcard"}
-            className="flex-1 rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 text-sm outline-none disabled:opacity-50"
+            className="flex-1 rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 text-sm outline-none"
           >
             {TIMER_OPTIONS.map((v) => (
               <option key={v} value={v}>
@@ -203,11 +183,11 @@ export default function LearnPage() {
         <FlashcardSkeleton />
       ) : (
         <LearnSession
-          key={`${mode}-${problemLimit ?? "all"}-${timerSeconds}`}
+          key={sessionKey}
           problems={problems ?? []}
-          mode={mode}
           problemLimit={problemLimit}
           timerSeconds={timerSeconds}
+          storageKey={sessionKey}
         />
       )}
     </div>

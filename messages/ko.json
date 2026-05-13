@@ -23,6 +23,7 @@
     "allMode": "전체",
     "complete": "학습 완료!",
     "completeMessage": "모든 주제를 완료했습니다.",
+    "restart": "다시하기",
     "modeFlashcard": "플래시카드",
     "modeInput": "직접 입력",
     "problemCount": "주제 수",

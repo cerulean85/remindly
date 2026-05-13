@@ -15,10 +15,11 @@ function shuffle<T>(arr: T[]): T[] {
 interface FlashcardOptions {
   limit?: number | null
   timerSeconds?: number
+  storageKey?: string
 }
 
 export function useFlashcard(problems: Problem[], options: FlashcardOptions = {}) {
-  const { limit = null, timerSeconds = 0 } = options
+  const { limit = null, timerSeconds = 0, storageKey } = options
 
   const [deck, setDeck] = useState<Problem[]>(() => {
     const shuffled = shuffle(problems)
@@ -28,6 +29,8 @@ export function useFlashcard(problems: Problem[], options: FlashcardOptions = {}
   const [isFlipped, setIsFlipped] = useState(false)
   const flippedRef = useRef(false)
   const [timeLeft, setTimeLeft] = useState(timerSeconds)
+  const hasRestoredRef = useRef(false)
+  const isRestoringRef = useRef(false)
 
   const current = deck[index] ?? null
   const isComplete = deck.length > 0 && index >= deck.length
@@ -51,16 +54,18 @@ export function useFlashcard(problems: Problem[], options: FlashcardOptions = {}
       }
       setIsFlipped(false)
       flippedRef.current = false
+      setTimeLeft(timerSeconds)
       setIndex((i) => i + 1)
     },
-    [current]
+    [current, timerSeconds]
   )
 
   const prev = useCallback(() => {
     setIsFlipped(false)
     flippedRef.current = false
+    setTimeLeft(timerSeconds)
     setIndex((i) => Math.max(0, i - 1))
-  }, [])
+  }, [timerSeconds])
 
   const restart = useCallback(() => {
     const shuffled = shuffle(problems)
@@ -72,11 +77,64 @@ export function useFlashcard(problems: Problem[], options: FlashcardOptions = {}
   }, [problems, limit, timerSeconds])
 
   useEffect(() => {
+    if (!storageKey || hasRestoredRef.current || typeof window === "undefined") return
+
+    hasRestoredRef.current = true
+    const saved = window.localStorage.getItem(storageKey)
+    if (!saved) return
+
+    try {
+      const parsed = JSON.parse(saved) as {
+        deckIds?: string[]
+        index?: number
+        isFlipped?: boolean
+        timeLeft?: number
+      }
+      if (!Array.isArray(parsed.deckIds)) return
+
+      const byId = new Map(problems.map((problem) => [problem.id, problem]))
+      const restoredDeck = parsed.deckIds
+        .map((id) => byId.get(id))
+        .filter((problem): problem is Problem => Boolean(problem))
+
+      if (restoredDeck.length === 0) return
+
+      const restoredIndex =
+        typeof parsed.index === "number"
+          ? Math.min(Math.max(0, parsed.index), restoredDeck.length)
+          : 0
+      const restoredIsFlipped = Boolean(parsed.isFlipped)
+
+      isRestoringRef.current = true
+      queueMicrotask(() => {
+        setDeck(restoredDeck)
+        setIndex(restoredIndex)
+        setIsFlipped(restoredIsFlipped)
+        flippedRef.current = restoredIsFlipped
+        setTimeLeft(typeof parsed.timeLeft === "number" ? parsed.timeLeft : timerSeconds)
+        isRestoringRef.current = false
+      })
+    } catch {
+      window.localStorage.removeItem(storageKey)
+    }
+  }, [problems, storageKey, timerSeconds])
+
+  useEffect(() => {
+    if (!storageKey || !hasRestoredRef.current || isRestoringRef.current || typeof window === "undefined") return
+
+    window.localStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        deckIds: deck.map((problem) => problem.id),
+        index,
+        isFlipped,
+        timeLeft,
+      })
+    )
+  }, [deck, index, isFlipped, storageKey, timeLeft])
+
+  useEffect(() => {
     if (timerSeconds === 0 || !current || isComplete) return
-    let active = true
-    queueMicrotask(() => {
-      if (active) setTimeLeft(timerSeconds)
-    })
 
     const id = setInterval(() => {
       if (flippedRef.current) return
@@ -91,7 +149,6 @@ export function useFlashcard(problems: Problem[], options: FlashcardOptions = {}
     }, 1000)
 
     return () => {
-      active = false
       clearInterval(id)
     }
   }, [current, timerSeconds, isComplete, next])

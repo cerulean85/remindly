@@ -23,6 +23,7 @@
     "allMode": "All",
     "complete": "Session Complete!",
     "completeMessage": "You've reviewed all problems.",
+    "restart": "Restart",
     "modeFlashcard": "Flashcard",
     "modeInput": "Type Answer",
     "problemCount": "Count",
