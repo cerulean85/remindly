@@ -23,6 +23,17 @@ body {
   box-sizing: border-box;
 }
 
+button {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  touch-action: manipulation;
+}
+
+button[data-compact="true"] {
+  min-width: auto;
+  min-height: auto;
+}
+
 .markdown {
   font-size: 0.9rem;
   line-height: 1.6;

@@ -21,6 +21,7 @@ export function Badge({ children, color, className, onRemove }: BadgeProps) {
       {onRemove && (
         <button
           type="button"
+          data-compact="true"
           onClick={onRemove}
           className="ml-0.5 hover:opacity-70 leading-none"
         >
