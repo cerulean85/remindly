@@ -11,7 +11,6 @@ type ChoicePayload = {
 
 const CHOICE_SCHEMA = {
   type: "object",
-  additionalProperties: false,
   properties: {
     options: {
       type: "array",
@@ -19,7 +18,6 @@ const CHOICE_SCHEMA = {
       maxItems: 4,
       items: {
         type: "object",
-        additionalProperties: false,
         properties: {
           text: { type: "string", minLength: 1, maxLength: 180 },
           isCorrect: { type: "boolean" },
@@ -33,23 +31,82 @@ const CHOICE_SCHEMA = {
 
 function extractResponseText(data: unknown) {
   if (typeof data !== "object" || data === null) return null
-  const direct = (data as { output_text?: unknown }).output_text
-  if (typeof direct === "string") return direct
 
-  const output = (data as { output?: unknown }).output
-  if (!Array.isArray(output)) return null
-
-  for (const item of output) {
-    if (typeof item !== "object" || item === null) continue
-    const content = (item as { content?: unknown }).content
-    if (!Array.isArray(content)) continue
-    for (const part of content) {
+  const candidates = (data as { candidates?: unknown }).candidates
+  if (!Array.isArray(candidates)) return null
+  for (const candidate of candidates) {
+    if (typeof candidate !== "object" || candidate === null) continue
+    const content = (candidate as { content?: { parts?: unknown } }).content
+    const parts = content?.parts
+    if (!Array.isArray(parts)) continue
+    for (const part of parts) {
       if (typeof part !== "object" || part === null) continue
       const text = (part as { text?: unknown }).text
       if (typeof text === "string") return text
     }
   }
   return null
+}
+
+function parseGeminiJson(text: string) {
+  try {
+    return JSON.parse(text)
+  } catch {
+    const fenced = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
+    if (!fenced) throw new Error("Gemini response was not valid JSON")
+    return JSON.parse(fenced[1])
+  }
+}
+
+function buildPrompt(problem: {
+  question: string
+  answer: string
+  keywords: string[]
+  category?: { name: string } | null
+}) {
+  return [
+    "You generate concise multiple-choice options for a study app.",
+    "Create exactly one correct option and three plausible but clearly incorrect distractors.",
+    "Match the user's language.",
+    "Do not copy the source explanation verbatim; paraphrase the correct option.",
+    "Return only JSON matching the supplied schema.",
+    "",
+    JSON.stringify({
+      question: problem.question,
+      answer: problem.answer,
+      keywords: problem.keywords,
+      category: problem.category?.name ?? null,
+    }),
+  ].join("\n")
+}
+
+function buildGeminiRequest(problem: {
+  question: string
+  answer: string
+  keywords: string[]
+  category?: { name: string } | null
+}) {
+  return {
+    contents: [
+      {
+        role: "user",
+        parts: [{ text: buildPrompt(problem) }],
+      },
+    ],
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: CHOICE_SCHEMA,
+      maxOutputTokens: 700,
+    },
+  }
+}
+
+function extractGeminiError(data: unknown) {
+  if (typeof data !== "object" || data === null) return null
+  const error = (data as { error?: unknown }).error
+  if (typeof error !== "object" || error === null) return null
+  const message = (error as { message?: unknown }).message
+  return typeof message === "string" ? message : null
 }
 
 function normalizeChoices(payload: ChoicePayload) {
@@ -76,9 +133,9 @@ export const POST = withAuth(async (req, { userId }) => {
     return NextResponse.json({ error: "problemId is required" }, { status: 400 })
   }
 
-  const apiKey = process.env.OPENAI_API_KEY
+  const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
-    return NextResponse.json({ error: "OPENAI_API_KEY is not configured" }, { status: 503 })
+    return NextResponse.json({ error: "GEMINI_API_KEY is not configured" }, { status: 503 })
   }
 
   const problem = await prisma.problem.findFirst({
@@ -87,49 +144,24 @@ export const POST = withAuth(async (req, { userId }) => {
   })
   if (!problem) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
-  const response = await fetch("https://api.openai.com/v1/responses", {
+  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash"
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      "x-goog-api-key": apiKey,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
-      instructions:
-        "You generate concise multiple-choice options for a study app. Create one correct option and three plausible but clearly incorrect distractors. Match the user's language. Do not copy the source explanation verbatim; paraphrase the correct option.",
-      input: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "input_text",
-              text: JSON.stringify({
-                question: problem.question,
-                answer: problem.answer,
-                keywords: problem.keywords,
-                category: problem.category?.name ?? null,
-              }),
-            },
-          ],
-        },
-      ],
-      text: {
-        format: {
-          type: "json_schema",
-          name: "choice_options",
-          strict: true,
-          schema: CHOICE_SCHEMA,
-        },
-      },
-      max_output_tokens: 700,
-    }),
+    body: JSON.stringify(buildGeminiRequest(problem)),
   })
 
+  const data = await response.json()
   if (!response.ok) {
-    return NextResponse.json({ error: "Failed to generate choice options" }, { status: 502 })
+    return NextResponse.json(
+      { error: extractGeminiError(data) ?? "Failed to generate choice options" },
+      { status: 502 }
+    )
   }
 
-  const data = await response.json()
   const text = extractResponseText(data)
   if (!text) {
     return NextResponse.json({ error: "AI response did not include text" }, { status: 502 })
@@ -137,7 +169,7 @@ export const POST = withAuth(async (req, { userId }) => {
 
   let parsed: ChoicePayload
   try {
-    parsed = JSON.parse(text)
+    parsed = parseGeminiJson(text)
   } catch {
     return NextResponse.json({ error: "AI response was not valid JSON" }, { status: 502 })
   }
