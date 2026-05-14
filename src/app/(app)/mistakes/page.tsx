@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { MistakeList } from "@/components/mistakes/MistakeList"
 import { MistakesPageSkeleton } from "@/components/ui/Skeleton"
@@ -9,11 +9,34 @@ import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
+type ViewMode = "grid" | "list"
+const VIEW_STORAGE_KEY = "mistakes.viewMode"
+
 export default function MistakesPage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const [search, setSearch] = useState("")
+  const [viewMode, setViewMode] = useState<ViewMode>("grid")
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const stored = window.localStorage.getItem(VIEW_STORAGE_KEY)
+    if (stored !== "grid" && stored !== "list") return
+
+    let active = true
+    queueMicrotask(() => {
+      if (active) setViewMode(stored)
+    })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem(VIEW_STORAGE_KEY, viewMode)
+  }, [viewMode])
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["categories"],
@@ -49,13 +72,52 @@ export default function MistakesPage() {
         <>
           <h1 className="mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">{t("mistakes.title")}</h1>
 
-          <div className="mb-4">
+          <div className="mb-4 flex gap-2">
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t("mistakes.searchPlaceholder")}
-              className="h-11 w-full rounded-xl border border-gray-300 bg-white px-3 text-sm outline-none focus:border-emerald-500 dark:border-neutral-700 dark:bg-neutral-900"
+              className="h-11 min-w-0 flex-1 rounded-xl border border-gray-300 bg-white px-3 text-sm outline-none focus:border-emerald-500 dark:border-neutral-700 dark:bg-neutral-900"
             />
+            <div className="shrink-0 flex rounded-full border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                aria-label={t("problems.viewGrid")}
+                title={t("problems.viewGrid")}
+                className={cn(
+                  "px-3 py-2 text-sm transition-colors",
+                  viewMode === "grid"
+                    ? "bg-emerald-500 text-white"
+                    : "text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-800"
+                )}
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <rect x="3" y="3" width="7" height="7" rx="1" />
+                  <rect x="14" y="3" width="7" height="7" rx="1" />
+                  <rect x="3" y="14" width="7" height="7" rx="1" />
+                  <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("list")}
+                aria-label={t("problems.viewList")}
+                title={t("problems.viewList")}
+                className={cn(
+                  "px-3 py-2 text-sm transition-colors",
+                  viewMode === "list"
+                    ? "bg-emerald-500 text-white"
+                    : "text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-800"
+                )}
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <line x1="4" y1="6" x2="20" y2="6" />
+                  <line x1="4" y1="12" x2="20" y2="12" />
+                  <line x1="4" y1="18" x2="20" y2="18" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           {categories.length > 0 && (
@@ -94,6 +156,7 @@ export default function MistakesPage() {
 
           <MistakeList
             mistakes={mistakes ?? []}
+            viewMode={viewMode}
             onDelete={(recordId) => deleteMutation.mutate(recordId)}
           />
         </>
