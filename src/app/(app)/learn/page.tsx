@@ -28,40 +28,7 @@ function ProgressBar({ index, total }: { index: number; total: number }) {
   )
 }
 
-type LearnMode = "flashcard" | "initial" | "choice"
-
-const INITIAL_CONSONANTS = [
-  "ㄱ",
-  "ㄲ",
-  "ㄴ",
-  "ㄷ",
-  "ㄸ",
-  "ㄹ",
-  "ㅁ",
-  "ㅂ",
-  "ㅃ",
-  "ㅅ",
-  "ㅆ",
-  "ㅇ",
-  "ㅈ",
-  "ㅉ",
-  "ㅊ",
-  "ㅋ",
-  "ㅌ",
-  "ㅍ",
-  "ㅎ",
-]
-
-function toInitialHint(text: string) {
-  return text
-    .split("")
-    .map((char) => {
-      const code = char.charCodeAt(0)
-      if (code < 0xac00 || code > 0xd7a3) return /\s/.test(char) ? " " : char
-      return INITIAL_CONSONANTS[Math.floor((code - 0xac00) / 588)]
-    })
-    .join("")
-}
+type LearnMode = "flashcard" | "choice"
 
 function plainText(value: string) {
   return value
@@ -215,7 +182,6 @@ function LearnSession({
                 onClick={flip}
                 timeLeft={timerSeconds > 0 ? timeLeft : null}
                 timerTotal={timerSeconds}
-                initialHint={mode === "initial" ? toInitialHint(current.question) : null}
               />
             </>
           )}
@@ -287,7 +253,6 @@ export default function LearnPage() {
             className="flex-1 rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 text-sm outline-none"
           >
             <option value="flashcard">{t("learn.modeFlashcard")}</option>
-            <option value="initial">{t("learn.modeInitial")}</option>
             <option value="choice">{t("learn.modeChoice")}</option>
           </select>
         </label>
