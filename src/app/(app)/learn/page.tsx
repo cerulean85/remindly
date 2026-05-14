@@ -57,6 +57,7 @@ function ChoiceCard({
     data,
     isLoading,
     isError,
+    error,
     refetch,
     isFetching,
   } = useQuery<{ options: ChoiceOption[] }>({
@@ -94,6 +95,9 @@ function ChoiceCard({
       ) : isError ? (
         <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-4 text-center dark:border-red-900 dark:bg-red-950/40">
           <p className="text-sm text-red-700 dark:text-red-300">{t("learn.choiceGenerationFailed")}</p>
+          {error instanceof Error && (
+            <p className="mt-1 text-xs leading-5 text-red-600 dark:text-red-300">{error.message}</p>
+          )}
           <Button
             type="button"
             variant="secondary"

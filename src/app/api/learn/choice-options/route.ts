@@ -58,6 +58,17 @@ function parseGeminiJson(text: string) {
   }
 }
 
+function compactText(value: string, maxLength: number) {
+  const compacted = value
+    .replace(/!\[[^\]]*]\([^)]*\)/g, "")
+    .replace(/\[([^\]]+)]\([^)]*\)/g, "$1")
+    .replace(/[`*_>#|]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+
+  return compacted.length > maxLength ? `${compacted.slice(0, maxLength).trim()}...` : compacted
+}
+
 function buildPrompt(problem: {
   question: string
   answer: string
@@ -69,11 +80,12 @@ function buildPrompt(problem: {
     "Create exactly one correct option and three plausible but clearly incorrect distractors.",
     "Match the user's language.",
     "Do not copy the source explanation verbatim; paraphrase the correct option.",
+    "Each option text must be 80 characters or fewer.",
     "Return only JSON matching the supplied schema.",
     "",
     JSON.stringify({
-      question: problem.question,
-      answer: problem.answer,
+      question: compactText(problem.question, 500),
+      answer: compactText(problem.answer, 1200),
       keywords: problem.keywords,
       category: problem.category?.name ?? null,
     }),
@@ -96,7 +108,7 @@ function buildGeminiRequest(problem: {
     generationConfig: {
       responseMimeType: "application/json",
       responseSchema: CHOICE_SCHEMA,
-      maxOutputTokens: 700,
+      maxOutputTokens: 2048,
     },
   }
 }
