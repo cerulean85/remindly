@@ -14,6 +14,12 @@ import type { Category, Problem } from "@/types"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
+type ChoiceOption = {
+  id: string
+  text: string
+  isCorrect: boolean
+}
+
 function ProgressBar({ index, total }: { index: number; total: number }) {
   return (
     <div className="flex flex-1 items-center gap-4 text-sm text-gray-500">
@@ -38,32 +44,39 @@ function plainText(value: string) {
     .trim()
 }
 
-function shuffle<T>(values: T[]) {
-  const next = [...values]
-  for (let i = next.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[next[i], next[j]] = [next[j], next[i]]
-  }
-  return next
-}
-
 function ChoiceCard({
   problem,
-  problems,
   onAnswer,
 }: {
   problem: Problem
-  problems: Problem[]
   onAnswer: (correct: boolean) => void
 }) {
   const { t } = useTranslation()
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const options = useMemo(() => {
-    const wrong = shuffle(problems.filter((candidate) => candidate.id !== problem.id)).slice(0, 3)
-    return shuffle([problem, ...wrong])
-  }, [problem, problems])
+  const {
+    data,
+    isLoading,
+    isError,
+    refetch,
+    isFetching,
+  } = useQuery<{ options: ChoiceOption[] }>({
+    queryKey: ["choice-options", problem.id],
+    queryFn: async () => {
+      const response = await fetch("/api/learn/choice-options", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ problemId: problem.id }),
+      })
+      const payload = await response.json()
+      if (!response.ok) throw new Error(payload?.error ?? "Failed to generate choices")
+      return payload
+    },
+    staleTime: Infinity,
+    retry: 1,
+  })
+  const options = useMemo(() => data?.options ?? [], [data?.options])
   const selected = options.find((option) => option.id === selectedId)
-  const isCorrect = selectedId === problem.id
+  const isCorrect = selected?.isCorrect === true
   const answerPreview = plainText(problem.answer)
 
   return (
@@ -74,28 +87,48 @@ function ChoiceCard({
       <p className="mb-5 min-h-20 whitespace-pre-wrap text-center text-lg font-medium text-gray-900 dark:text-gray-100">
         {problem.question}
       </p>
-      <div className="grid gap-2">
-        {options.map((option) => {
-          const picked = selectedId === option.id
-          const revealCorrect = selectedId && option.id === problem.id
-          return (
-            <button
-              key={option.id}
-              type="button"
-              disabled={!!selectedId}
-              onClick={() => setSelectedId(option.id)}
-              className={cn(
-                "min-h-12 rounded-lg border px-3 py-2 text-left text-sm transition-colors",
-                "border-gray-200 hover:bg-gray-50 dark:border-neutral-800 dark:hover:bg-neutral-800",
-                picked && !isCorrect && "border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300",
-                revealCorrect && "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-              )}
-            >
-              {plainText(option.answer).slice(0, 140) || t("learn.correctAnswer")}
-            </button>
-          )
-        })}
-      </div>
+      {isLoading ? (
+        <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-6 text-center text-sm text-gray-500 dark:border-neutral-800 dark:bg-neutral-950">
+          {t("learn.generatingChoices")}
+        </div>
+      ) : isError ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-4 text-center dark:border-red-900 dark:bg-red-950/40">
+          <p className="text-sm text-red-700 dark:text-red-300">{t("learn.choiceGenerationFailed")}</p>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="mt-3"
+            disabled={isFetching}
+            onClick={() => refetch()}
+          >
+            {t("learn.retryChoices")}
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-2">
+          {options.map((option) => {
+            const picked = selectedId === option.id
+            const revealCorrect = selectedId && option.isCorrect
+            return (
+              <button
+                key={option.id}
+                type="button"
+                disabled={!!selectedId}
+                onClick={() => setSelectedId(option.id)}
+                className={cn(
+                  "min-h-12 rounded-lg border px-3 py-2 text-left text-sm transition-colors",
+                  "border-gray-200 hover:bg-gray-50 dark:border-neutral-800 dark:hover:bg-neutral-800",
+                  picked && !isCorrect && "border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300",
+                  revealCorrect && "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                )}
+              >
+                {option.text}
+              </button>
+            )
+          })}
+        </div>
+      )}
       {selected && (
         <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-neutral-800 dark:bg-neutral-950">
           <div className="flex items-center justify-between gap-3">
@@ -169,7 +202,6 @@ function LearnSession({
             <ChoiceCard
               key={current.id}
               problem={current}
-              problems={problems}
               onAnswer={(correct) => next(correct ? "vivid" : "skip")}
             />
           ) : (

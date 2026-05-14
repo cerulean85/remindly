@@ -51,6 +51,9 @@
     "deleteRecordConfirm": "이 오답 기록을 삭제하시겠습니까?",
     "choiceCorrect": "정답입니다.",
     "choiceWrong": "오답입니다.",
+    "generatingChoices": "AI가 보기를 생성하는 중입니다...",
+    "choiceGenerationFailed": "보기를 생성하지 못했습니다.",
+    "retryChoices": "다시 생성",
     "next": "다음"
   },
   "problems": {
