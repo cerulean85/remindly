@@ -1,9 +1,11 @@
 "use client"
 
+import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { MistakeList } from "@/components/mistakes/MistakeList"
 import { MistakesPageSkeleton } from "@/components/ui/Skeleton"
+import { SearchIcon } from "@/components/ui/Icons"
 import type { Category, MistakeRecord } from "@/types"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
@@ -70,16 +72,30 @@ export default function MistakesPage() {
         <MistakesPageSkeleton />
       ) : (
         <>
-          <h1 className="mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">{t("mistakes.title")}</h1>
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <div>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t("mistakes.title")}</h1>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t("mistakes.subtitle")}</p>
+            </div>
+            <Link
+              href="/learn"
+              className="ml-auto inline-flex min-h-11 items-center justify-center rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-600"
+            >
+              {t("mistakes.startLearning")}
+            </Link>
+          </div>
 
-          <div className="mb-4 flex gap-2">
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t("mistakes.searchPlaceholder")}
-              className="h-11 min-w-0 flex-1 rounded-xl border border-gray-300 bg-white px-3 text-sm outline-none focus:border-emerald-500 dark:border-neutral-700 dark:bg-neutral-900"
-            />
-            <div className="shrink-0 flex rounded-full border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 overflow-hidden">
+          <div className="mb-3 flex flex-wrap gap-2">
+            <div className="relative min-w-[14rem] flex-1">
+              <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t("mistakes.searchPlaceholder")}
+                className="h-11 w-full rounded-full border border-gray-300 bg-white pl-9 pr-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100"
+              />
+            </div>
+            <div className="flex shrink-0 overflow-hidden rounded-full border border-gray-300 bg-white dark:border-neutral-700 dark:bg-neutral-900">
               <button
                 type="button"
                 onClick={() => setViewMode("grid")}

@@ -52,7 +52,7 @@ function ProblemRow({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-xl border px-3 py-2.5 shadow-sm transition-colors",
+        "flex items-center gap-3 rounded-lg border px-3 py-2.5 shadow-sm transition-colors",
         isGold
           ? "bg-gradient-to-r from-amber-100 to-amber-50 dark:from-amber-500/15 dark:to-amber-700/10 border-amber-300 dark:border-amber-600/40"
           : "bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-800"
@@ -117,7 +117,7 @@ function ProblemCard({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-2xl shadow-sm flex flex-col h-full border",
+        "relative flex h-full flex-col overflow-hidden rounded-lg border shadow-sm",
         isGold
           ? "bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-500/15 dark:to-amber-700/10 border-amber-300 dark:border-amber-600/40"
           : "bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-800"

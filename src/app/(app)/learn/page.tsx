@@ -64,9 +64,10 @@ function ChoiceCard({
   }, [problem, problems])
   const selected = options.find((option) => option.id === selectedId)
   const isCorrect = selectedId === problem.id
+  const answerPreview = plainText(problem.answer)
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+    <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
       <div className="mb-4">
         <CategoryBadge category={problem.category} />
       </div>
@@ -84,7 +85,7 @@ function ChoiceCard({
               disabled={!!selectedId}
               onClick={() => setSelectedId(option.id)}
               className={cn(
-                "min-h-12 rounded-xl border px-3 py-2 text-left text-sm transition-colors",
+                "min-h-12 rounded-lg border px-3 py-2 text-left text-sm transition-colors",
                 "border-gray-200 hover:bg-gray-50 dark:border-neutral-800 dark:hover:bg-neutral-800",
                 picked && !isCorrect && "border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300",
                 revealCorrect && "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
@@ -96,11 +97,17 @@ function ChoiceCard({
         })}
       </div>
       {selected && (
-        <div className="mt-4 flex items-center justify-between gap-3">
-          <span className={cn("text-sm font-medium", isCorrect ? "text-emerald-600" : "text-red-600")}>
-            {isCorrect ? t("learn.choiceCorrect") : t("learn.choiceWrong")}
-          </span>
-          <Button onClick={() => onAnswer(isCorrect)}>{t("learn.next")}</Button>
+        <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-neutral-800 dark:bg-neutral-950">
+          <div className="flex items-center justify-between gap-3">
+            <span className={cn("text-sm font-semibold", isCorrect ? "text-emerald-600" : "text-red-600")}>
+              {isCorrect ? t("learn.choiceCorrect") : t("learn.choiceWrong")}
+            </span>
+            <Button onClick={() => onAnswer(isCorrect)}>{t("learn.next")}</Button>
+          </div>
+          <p className="mt-2 text-xs font-medium text-gray-500 dark:text-gray-400">{t("learn.correctAnswer")}</p>
+          <p className="mt-1 line-clamp-5 whitespace-pre-wrap text-sm leading-6 text-gray-700 dark:text-gray-200">
+            {answerPreview || t("learn.correctAnswer")}
+          </p>
         </div>
       )}
     </div>
@@ -244,46 +251,61 @@ export default function LearnPage() {
         </div>
       </div>
 
-      <div className="mb-6 grid grid-cols-1 gap-2 sm:grid-cols-3">
-        <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-          <span className="shrink-0">{t("learn.mode")}</span>
-          <select
-            value={mode}
-            onChange={(e) => setMode(e.target.value as LearnMode)}
-            className="flex-1 rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 text-sm outline-none"
-          >
-            <option value="flashcard">{t("learn.modeFlashcard")}</option>
-            <option value="choice">{t("learn.modeChoice")}</option>
-          </select>
-        </label>
-        <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-          <span className="shrink-0">{t("learn.problemCount")}</span>
-          <select
-            value={problemLimit ?? "all"}
-            onChange={(e) => setProblemLimit(e.target.value === "all" ? null : Number(e.target.value))}
-            className="flex-1 rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 text-sm outline-none"
-          >
-            {PROBLEM_LIMIT_OPTIONS.map((v) => (
-              <option key={v ?? "all"} value={v ?? "all"}>
-                {v === null ? t("learn.allProblems") : v}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-          <span className="shrink-0">{t("learn.timer")}</span>
-          <select
-            value={timerSeconds}
-            onChange={(e) => setTimerSeconds(Number(e.target.value))}
-            className="flex-1 rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 text-sm outline-none"
-          >
-            {TIMER_OPTIONS.map((v) => (
-              <option key={v} value={v}>
-                {v === 0 ? t("learn.timerOff") : `${v}${t("learn.secondsSuffix")}`}
-              </option>
-            ))}
-          </select>
-        </label>
+      <div className="mb-6 flex flex-col gap-3">
+        <div
+          className="grid grid-cols-2 overflow-hidden rounded-lg border border-gray-300 bg-white p-1 dark:border-neutral-700 dark:bg-neutral-900"
+          role="radiogroup"
+          aria-label={t("learn.mode")}
+        >
+          {(["flashcard", "choice"] as const).map((nextMode) => (
+            <button
+              key={nextMode}
+              type="button"
+              role="radio"
+              aria-checked={mode === nextMode}
+              onClick={() => setMode(nextMode)}
+              className={cn(
+                "min-h-10 rounded-md px-3 text-sm font-medium transition-colors",
+                mode === nextMode
+                  ? "bg-emerald-500 text-white shadow-sm"
+                  : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-neutral-800"
+              )}
+            >
+              {nextMode === "flashcard" ? t("learn.modeFlashcard") : t("learn.modeChoice")}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+            <span className="shrink-0">{t("learn.problemCount")}</span>
+            <select
+              value={problemLimit ?? "all"}
+              onChange={(e) => setProblemLimit(e.target.value === "all" ? null : Number(e.target.value))}
+              className="flex-1 rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm outline-none dark:border-neutral-700 dark:bg-neutral-900"
+            >
+              {PROBLEM_LIMIT_OPTIONS.map((v) => (
+                <option key={v ?? "all"} value={v ?? "all"}>
+                  {v === null ? t("learn.allProblems") : v}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+            <span className="shrink-0">{t("learn.timer")}</span>
+            <select
+              value={timerSeconds}
+              onChange={(e) => setTimerSeconds(Number(e.target.value))}
+              className="flex-1 rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm outline-none dark:border-neutral-700 dark:bg-neutral-900"
+            >
+              {TIMER_OPTIONS.map((v) => (
+                <option key={v} value={v}>
+                  {v === 0 ? t("learn.timerOff") : `${v}${t("learn.secondsSuffix")}`}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </div>
 
       {isLoading ? (

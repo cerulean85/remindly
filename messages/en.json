@@ -3,7 +3,7 @@
     "dashboard": "Dashboard",
     "learn": "Learn",
     "retrieval": "Retrieval",
-    "mistakes": "Mistakes",
+    "mistakes": "Mistake records",
     "problems": "Problems",
     "notes": "Notes",
     "settings": "Settings",
@@ -89,7 +89,9 @@
     "allLoaded": "All {{count}} loaded."
   },
   "mistakes": {
-    "title": "Mistake Notes",
+    "title": "Mistake records",
+    "subtitle": "Review and organize the reasons you recorded by problem and category.",
+    "startLearning": "Start learning",
     "skipCount": "Times Wrong",
     "blurryCount": "Times Blurry",
     "noMistakes": "No mistakes yet.",

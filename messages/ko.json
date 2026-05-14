@@ -3,7 +3,7 @@
     "dashboard": "대시보드",
     "learn": "학습하기",
     "retrieval": "인출 관리",
-    "mistakes": "오답노트",
+    "mistakes": "오답 기록",
     "problems": "주제 관리",
     "notes": "메모",
     "settings": "설정",
@@ -89,7 +89,9 @@
     "allLoaded": "전체 {{count}}개를 모두 불러왔습니다."
   },
   "mistakes": {
-    "title": "오답노트",
+    "title": "오답 기록",
+    "subtitle": "기록한 오답 사유를 주제와 카테고리별로 확인하고 정리하세요.",
+    "startLearning": "학습 시작",
     "skipCount": "틀린 횟수",
     "blurryCount": "어설프게 안 횟수",
     "noMistakes": "아직 오답이 없습니다.",
