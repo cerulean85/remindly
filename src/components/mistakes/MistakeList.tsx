@@ -1,23 +1,48 @@
 "use client"
 
 import { useState } from "react"
-import type { MistakeNote, Problem } from "@/types"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import type { MistakeRecord, Problem } from "@/types"
 import { CategoryBadge } from "@/components/categories/CategoryBadge"
 import { Badge } from "@/components/ui/Badge"
-import { TrophyIcon, XIcon, HalfCircleIcon } from "@/components/ui/Icons"
+import { TrophyIcon } from "@/components/ui/Icons"
 import { ProblemDetailSheet } from "@/components/problems/ProblemDetailSheet"
+import { Button } from "@/components/ui/Button"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
 interface Props {
-  mistakes: MistakeNote[]
-  onDelete: (problemId: string) => void
+  mistakes: MistakeRecord[]
+  onDelete: (recordId: string) => void
+}
+
+async function readJson<T>(response: Response): Promise<T> {
+  const data = await response.json()
+  if (!response.ok) throw new Error(data?.error ?? "Request failed")
+  return data
 }
 
 export function MistakeList({ mistakes, onDelete }: Props) {
   const { t } = useTranslation()
+  const queryClient = useQueryClient()
   const [detailTarget, setDetailTarget] = useState<Problem | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
+  const [editingRecord, setEditingRecord] = useState<MistakeRecord | null>(null)
+  const [content, setContent] = useState("")
+
+  const updateMutation = useMutation({
+    mutationFn: (record: MistakeRecord) =>
+      fetch(`/api/mistake-records/${record.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content }),
+      }).then((r) => readJson<MistakeRecord>(r)),
+    onSuccess: () => {
+      setEditingRecord(null)
+      setContent("")
+      queryClient.invalidateQueries({ queryKey: ["mistakes"] })
+    },
+  })
 
   if (mistakes.length === 0) {
     return (
@@ -29,9 +54,9 @@ export function MistakeList({ mistakes, onDelete }: Props) {
     )
   }
 
-  const handleDeleteClick = (e: React.MouseEvent, problemId: string) => {
+  const handleDeleteClick = (e: React.MouseEvent, recordId: string) => {
     e.stopPropagation()
-    setConfirmId(problemId)
+    setConfirmId(recordId)
   }
 
   const handleConfirmDelete = () => {
@@ -39,6 +64,12 @@ export function MistakeList({ mistakes, onDelete }: Props) {
       onDelete(confirmId)
       setConfirmId(null)
     }
+  }
+
+  const startEdit = (e: React.MouseEvent, record: MistakeRecord) => {
+    e.stopPropagation()
+    setEditingRecord(record)
+    setContent(record.content)
   }
 
   return (
@@ -51,8 +82,8 @@ export function MistakeList({ mistakes, onDelete }: Props) {
                 className="flex-1 flex flex-col items-start w-full text-left p-4 pb-3 hover:bg-gray-50 dark:hover:bg-neutral-800/60 transition-colors"
                 onClick={() => m.problem && setDetailTarget(m.problem)}
               >
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">{m.problem?.question}</p>
-                <p className="text-xs text-gray-500 line-clamp-2">{m.problem?.answer}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1 line-clamp-2">{m.problem?.question}</p>
+                <p className="text-xs text-gray-500 line-clamp-3 whitespace-pre-wrap">{m.content}</p>
                 {m.problem && m.problem.keywords.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1">
                     {m.problem.keywords.slice(0, 3).map((kw) => (
@@ -68,16 +99,14 @@ export function MistakeList({ mistakes, onDelete }: Props) {
               <div className="mt-auto flex items-center justify-between px-4 py-3 border-t border-gray-100 dark:border-neutral-800">
                 <CategoryBadge category={m.problem?.category} />
                 <div className="flex items-center gap-3 text-xs text-gray-400">
-                  <span title={t("mistakes.skipCount")} className="inline-flex items-center gap-1 text-red-500 dark:text-red-400">
-                    <XIcon className="h-3.5 w-3.5" />
-                    <strong>{m.skipCount}</strong>
-                  </span>
-                  <span title={t("mistakes.blurryCount")} className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
-                    <HalfCircleIcon className="h-3.5 w-3.5" />
-                    <strong>{m.blurryCount}</strong>
-                  </span>
                   <button
-                    onClick={(e) => handleDeleteClick(e, m.problemId)}
+                    onClick={(e) => startEdit(e, m)}
+                    className="text-gray-500 hover:text-emerald-600 transition-colors"
+                  >
+                    {t("common.edit")}
+                  </button>
+                  <button
+                    onClick={(e) => handleDeleteClick(e, m.id)}
                     className="text-gray-500 hover:text-red-500 transition-colors"
                   >
                     {t("mistakes.delete")}
@@ -93,6 +122,32 @@ export function MistakeList({ mistakes, onDelete }: Props) {
         problem={detailTarget}
         onClose={() => setDetailTarget(null)}
       />
+
+      {editingRecord && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl p-6 mx-4 w-full max-w-lg shadow-xl">
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
+              {t("mistakes.editRecord")}
+            </p>
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="min-h-32 w-full resize-y rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 dark:border-neutral-700 dark:bg-neutral-950"
+            />
+            <div className="mt-4 flex gap-3 justify-end">
+              <Button variant="secondary" onClick={() => setEditingRecord(null)}>
+                {t("mistakes.cancel")}
+              </Button>
+              <Button
+                disabled={!content.trim() || updateMutation.isPending}
+                onClick={() => updateMutation.mutate(editingRecord)}
+              >
+                {updateMutation.isPending ? t("notes.saving") : t("common.save")}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {confirmId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">

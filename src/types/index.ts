@@ -65,4 +65,5 @@ export interface MistakeRecord {
   content: string
   createdAt: string
   updatedAt: string
+  problem?: Problem
 }

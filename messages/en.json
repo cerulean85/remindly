@@ -26,6 +26,9 @@
     "restart": "Restart",
     "modeFlashcard": "Flashcard",
     "modeInput": "Type Answer",
+    "mode": "Mode",
+    "modeInitial": "Initials",
+    "modeChoice": "Multiple Choice",
     "problemCount": "Count",
     "allProblems": "All",
     "timer": "Timer",
@@ -46,7 +49,10 @@
     "noMistakeRecords": "No mistake records yet.",
     "recordPlaceholder": "Write why this was recorded as a mistake.",
     "deleteRecord": "Delete Mistake Record",
-    "deleteRecordConfirm": "Delete this mistake record?"
+    "deleteRecordConfirm": "Delete this mistake record?",
+    "choiceCorrect": "Correct.",
+    "choiceWrong": "Wrong.",
+    "next": "Next"
   },
   "problems": {
     "title": "Problem Management",
@@ -88,7 +94,9 @@
     "skipCount": "Times Wrong",
     "blurryCount": "Times Blurry",
     "noMistakes": "No mistakes yet.",
-    "noMistakesMessage": "Start learning and mistakes will be recorded automatically.",
+    "noMistakesMessage": "Mistake records you add while learning will appear here.",
+    "searchPlaceholder": "Search mistake records, questions, descriptions, keywords",
+    "editRecord": "Edit mistake record",
     "delete": "Delete",
     "deleteConfirm": "Remove this item from your mistake notes?",
     "cancel": "Cancel"

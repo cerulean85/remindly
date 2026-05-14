@@ -1,13 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useFlashcard } from "@/hooks/useFlashcard"
 import { FlashCard } from "@/components/flashcard/FlashCard"
 import { LearningControls } from "@/components/flashcard/LearningControls"
 import { FlashcardSkeleton } from "@/components/ui/Skeleton"
 import { Button } from "@/components/ui/Button"
+import { CategoryBadge } from "@/components/categories/CategoryBadge"
 import { LearnIcon, TrophyIcon } from "@/components/ui/Icons"
+import { cn } from "@/lib/utils"
 import type { Category, Problem } from "@/types"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
@@ -26,16 +28,130 @@ function ProgressBar({ index, total }: { index: number; total: number }) {
   )
 }
 
+type LearnMode = "flashcard" | "initial" | "choice"
+
+const INITIAL_CONSONANTS = [
+  "ㄱ",
+  "ㄲ",
+  "ㄴ",
+  "ㄷ",
+  "ㄸ",
+  "ㄹ",
+  "ㅁ",
+  "ㅂ",
+  "ㅃ",
+  "ㅅ",
+  "ㅆ",
+  "ㅇ",
+  "ㅈ",
+  "ㅉ",
+  "ㅊ",
+  "ㅋ",
+  "ㅌ",
+  "ㅍ",
+  "ㅎ",
+]
+
+function toInitialHint(text: string) {
+  return text
+    .split("")
+    .map((char) => {
+      const code = char.charCodeAt(0)
+      if (code < 0xac00 || code > 0xd7a3) return /\s/.test(char) ? " " : char
+      return INITIAL_CONSONANTS[Math.floor((code - 0xac00) / 588)]
+    })
+    .join("")
+}
+
+function plainText(value: string) {
+  return value
+    .replace(/!\[[^\]]*]\([^)]*\)/g, "")
+    .replace(/\[([^\]]+)]\([^)]*\)/g, "$1")
+    .replace(/[`*_>#-]/g, "")
+    .trim()
+}
+
+function shuffle<T>(values: T[]) {
+  const next = [...values]
+  for (let i = next.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[next[i], next[j]] = [next[j], next[i]]
+  }
+  return next
+}
+
+function ChoiceCard({
+  problem,
+  problems,
+  onAnswer,
+}: {
+  problem: Problem
+  problems: Problem[]
+  onAnswer: (correct: boolean) => void
+}) {
+  const { t } = useTranslation()
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const options = useMemo(() => {
+    const wrong = shuffle(problems.filter((candidate) => candidate.id !== problem.id)).slice(0, 3)
+    return shuffle([problem, ...wrong])
+  }, [problem, problems])
+  const selected = options.find((option) => option.id === selectedId)
+  const isCorrect = selectedId === problem.id
+
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="mb-4">
+        <CategoryBadge category={problem.category} />
+      </div>
+      <p className="mb-5 min-h-20 whitespace-pre-wrap text-center text-lg font-medium text-gray-900 dark:text-gray-100">
+        {problem.question}
+      </p>
+      <div className="grid gap-2">
+        {options.map((option) => {
+          const picked = selectedId === option.id
+          const revealCorrect = selectedId && option.id === problem.id
+          return (
+            <button
+              key={option.id}
+              type="button"
+              disabled={!!selectedId}
+              onClick={() => setSelectedId(option.id)}
+              className={cn(
+                "min-h-12 rounded-xl border px-3 py-2 text-left text-sm transition-colors",
+                "border-gray-200 hover:bg-gray-50 dark:border-neutral-800 dark:hover:bg-neutral-800",
+                picked && !isCorrect && "border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300",
+                revealCorrect && "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+              )}
+            >
+              {plainText(option.answer).slice(0, 140) || t("learn.correctAnswer")}
+            </button>
+          )
+        })}
+      </div>
+      {selected && (
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <span className={cn("text-sm font-medium", isCorrect ? "text-emerald-600" : "text-red-600")}>
+            {isCorrect ? t("learn.choiceCorrect") : t("learn.choiceWrong")}
+          </span>
+          <Button onClick={() => onAnswer(isCorrect)}>{t("learn.next")}</Button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function LearnSession({
   problems,
   problemLimit,
   timerSeconds,
   storageKey,
+  mode,
 }: {
   problems: Problem[]
   problemLimit: number | null
   timerSeconds: number
   storageKey: string
+  mode: LearnMode
 }) {
   const { t } = useTranslation()
   const { current, index, total, isFlipped, isComplete, timeLeft, flip, next, prev, restart } = useFlashcard(
@@ -75,22 +191,34 @@ function LearnSession({
 
       {current && (
         <>
-          <LearningControls
-            hasPrev={index > 0}
-            onPrev={prev}
-            onSkip={() => next()}
-            onMarkWrong={() => next("skip")}
-            onBlurry={() => next("blurry")}
-            onKnow={() => next("vivid")}
-          />
-          <FlashCard
-            key={current.id}
-            problem={current}
-            isFlipped={isFlipped}
-            onClick={flip}
-            timeLeft={timerSeconds > 0 ? timeLeft : null}
-            timerTotal={timerSeconds}
-          />
+          {mode === "choice" ? (
+            <ChoiceCard
+              key={current.id}
+              problem={current}
+              problems={problems}
+              onAnswer={(correct) => next(correct ? "vivid" : "skip")}
+            />
+          ) : (
+            <>
+              <LearningControls
+                hasPrev={index > 0}
+                onPrev={prev}
+                onSkip={() => next()}
+                onMarkWrong={() => next("skip")}
+                onBlurry={() => next("blurry")}
+                onKnow={() => next("vivid")}
+              />
+              <FlashCard
+                key={current.id}
+                problem={current}
+                isFlipped={isFlipped}
+                onClick={flip}
+                timeLeft={timerSeconds > 0 ? timeLeft : null}
+                timerTotal={timerSeconds}
+                initialHint={mode === "initial" ? toInitialHint(current.question) : null}
+              />
+            </>
+          )}
         </>
       )}
     </div>
@@ -103,8 +231,9 @@ const TIMER_OPTIONS = [0, 10, 20, 30, 60]
 export default function LearnPage() {
   const { t } = useTranslation()
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("")
-  const [problemLimit, setProblemLimit] = useState<number | null>(20)
+  const [problemLimit, setProblemLimit] = useState<number | null>(null)
   const [timerSeconds, setTimerSeconds] = useState<number>(0)
+  const [mode, setMode] = useState<LearnMode>("flashcard")
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ["categories"],
@@ -124,6 +253,7 @@ export default function LearnPage() {
     "remindly",
     "learn-session",
     selectedCategoryId || "all",
+    mode,
     problemLimit ?? "all",
     timerSeconds,
   ].join(":")
@@ -148,7 +278,19 @@ export default function LearnPage() {
         </div>
       </div>
 
-      <div className="mb-6 grid grid-cols-2 gap-2">
+      <div className="mb-6 grid grid-cols-1 gap-2 sm:grid-cols-3">
+        <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+          <span className="shrink-0">{t("learn.mode")}</span>
+          <select
+            value={mode}
+            onChange={(e) => setMode(e.target.value as LearnMode)}
+            className="flex-1 rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 text-sm outline-none"
+          >
+            <option value="flashcard">{t("learn.modeFlashcard")}</option>
+            <option value="initial">{t("learn.modeInitial")}</option>
+            <option value="choice">{t("learn.modeChoice")}</option>
+          </select>
+        </label>
         <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
           <span className="shrink-0">{t("learn.problemCount")}</span>
           <select
@@ -188,6 +330,7 @@ export default function LearnPage() {
           problemLimit={problemLimit}
           timerSeconds={timerSeconds}
           storageKey={sessionKey}
+          mode={mode}
         />
       )}
     </div>

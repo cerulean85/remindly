@@ -17,9 +17,10 @@ interface FlashCardProps {
   onClick: () => void
   timeLeft?: number | null
   timerTotal?: number
+  initialHint?: string | null
 }
 
-export function FlashCard({ problem, isFlipped, onClick, timeLeft, timerTotal }: FlashCardProps) {
+export function FlashCard({ problem, isFlipped, onClick, timeLeft, timerTotal, initialHint }: FlashCardProps) {
   const [recordModalMode, setRecordModalMode] = useState<"list" | "create" | null>(null)
   const [recordCountDelta, setRecordCountDelta] = useState(0)
   const showTimer = !isFlipped && typeof timeLeft === "number" && timerTotal && timerTotal > 0
@@ -61,8 +62,13 @@ export function FlashCard({ problem, isFlipped, onClick, timeLeft, timerTotal }:
               )}
             </div>
             <p className="text-lg font-medium text-gray-900 dark:text-gray-100 text-center flex-1 flex items-center justify-center whitespace-pre-wrap">
-              {problem.question}
+              {initialHint || problem.question}
             </p>
+            {initialHint && (
+              <p className="mt-3 text-center text-xs text-gray-500 dark:text-gray-400">
+                {problem.question}
+              </p>
+            )}
             <CardStats
               retrievalRate={retrievalRate}
               wrongCount={wrongCount}

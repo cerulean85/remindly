@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { MistakeList } from "@/components/mistakes/MistakeList"
 import { MistakesPageSkeleton } from "@/components/ui/Skeleton"
-import type { Category, MistakeNote } from "@/types"
+import type { Category, MistakeRecord } from "@/types"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
@@ -13,26 +13,29 @@ export default function MistakesPage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
+  const [search, setSearch] = useState("")
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["categories"],
     queryFn: () => fetch("/api/categories").then((r) => r.json()),
   })
 
-  const { data: mistakes, isLoading } = useQuery<MistakeNote[]>({
-    queryKey: ["mistakes", selectedCategoryId],
+  const { data: mistakes, isLoading } = useQuery<MistakeRecord[]>({
+    queryKey: ["mistakes", selectedCategoryId, search],
     queryFn: () => {
-      const url = selectedCategoryId
-        ? `/api/mistakes?categoryId=${selectedCategoryId}`
-        : "/api/mistakes"
+      const params = new URLSearchParams()
+      if (selectedCategoryId) params.set("categoryId", selectedCategoryId)
+      if (search.trim()) params.set("search", search.trim())
+      const query = params.toString()
+      const url = query ? `/api/mistakes?${query}` : "/api/mistakes"
       return fetch(url).then((r) => r.json())
     },
     staleTime: 0,
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (problemId: string) =>
-      fetch(`/api/mistakes/${problemId}`, { method: "DELETE" }).then((r) => r.json()),
+    mutationFn: (recordId: string) =>
+      fetch(`/api/mistake-records/${recordId}`, { method: "DELETE" }).then((r) => r.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["mistakes"] })
     },
@@ -45,6 +48,15 @@ export default function MistakesPage() {
       ) : (
         <>
           <h1 className="mb-6 text-xl font-bold text-gray-900 dark:text-gray-100">{t("mistakes.title")}</h1>
+
+          <div className="mb-4">
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t("mistakes.searchPlaceholder")}
+              className="h-11 w-full rounded-xl border border-gray-300 bg-white px-3 text-sm outline-none focus:border-emerald-500 dark:border-neutral-700 dark:bg-neutral-900"
+            />
+          </div>
 
           {categories.length > 0 && (
             <div className="mb-5 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
@@ -82,7 +94,7 @@ export default function MistakesPage() {
 
           <MistakeList
             mistakes={mistakes ?? []}
-            onDelete={(problemId) => deleteMutation.mutate(problemId)}
+            onDelete={(recordId) => deleteMutation.mutate(recordId)}
           />
         </>
       )}

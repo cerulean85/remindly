@@ -26,6 +26,9 @@
     "restart": "다시하기",
     "modeFlashcard": "플래시카드",
     "modeInput": "직접 입력",
+    "mode": "방식",
+    "modeInitial": "두음신공",
+    "modeChoice": "객관식",
     "problemCount": "주제 수",
     "allProblems": "전체",
     "timer": "타이머",
@@ -46,7 +49,10 @@
     "noMistakeRecords": "작성된 오답 기록이 없습니다.",
     "recordPlaceholder": "오답으로 기록하게 된 사유를 작성하세요.",
     "deleteRecord": "오답 기록 삭제",
-    "deleteRecordConfirm": "이 오답 기록을 삭제하시겠습니까?"
+    "deleteRecordConfirm": "이 오답 기록을 삭제하시겠습니까?",
+    "choiceCorrect": "정답입니다.",
+    "choiceWrong": "오답입니다.",
+    "next": "다음"
   },
   "problems": {
     "title": "주제 관리",
@@ -88,7 +94,9 @@
     "skipCount": "틀린 횟수",
     "blurryCount": "어설프게 안 횟수",
     "noMistakes": "아직 오답이 없습니다.",
-    "noMistakesMessage": "학습을 시작하면 자동으로 기록됩니다.",
+    "noMistakesMessage": "학습 중 오답 기록을 추가하면 여기에 표시됩니다.",
+    "searchPlaceholder": "오답 기록, 주제, 설명, 키워드 검색",
+    "editRecord": "오답 기록 수정",
     "delete": "삭제",
     "deleteConfirm": "오답노트에서 이 항목을 삭제하시겠습니까?",
     "cancel": "취소"
