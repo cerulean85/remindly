@@ -6,6 +6,8 @@ import { CategoryBadge } from "@/components/categories/CategoryBadge"
 import { MarkdownPreview } from "@/components/notes/MarkdownPreview"
 import { ImageGallery } from "@/components/ui/ImageGallery"
 import type { Problem } from "@/types"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
 interface ProblemDetailSheetProps {
   problem: Problem | null
@@ -15,6 +17,7 @@ interface ProblemDetailSheetProps {
 }
 
 export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete }: ProblemDetailSheetProps) {
+  const { t } = useTranslation()
   const open = !!problem
   const sheetRef = useRef<HTMLDivElement>(null)
 
@@ -50,25 +53,50 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete }: Probl
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className="mx-auto max-w-3xl rounded-t-3xl bg-white dark:bg-neutral-900 shadow-2xl h-[95dvh] flex flex-col relative"
+          className="mx-auto max-w-3xl rounded-t-3xl bg-white dark:bg-neutral-900 shadow-2xl h-[95dvh] flex flex-col"
         >
           {/* Handle bar */}
           <div className="flex justify-center pt-3 pb-1 shrink-0">
             <div className="h-1 w-10 rounded-full bg-gray-300 dark:bg-neutral-700" />
           </div>
 
-          {/* Close button */}
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="absolute top-3 right-3 h-9 w-9 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors flex items-center justify-center text-xl leading-none"
-          >
-            ×
-          </button>
+          {/* Header: title + actions */}
+          <div className="flex items-center justify-between gap-3 border-b border-gray-100 dark:border-neutral-800 px-6 py-3 shrink-0">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              {t("problems.detail")}
+            </h2>
+            <div className="flex items-center gap-2">
+              {problem && onEdit && (
+                <button
+                  type="button"
+                  onClick={() => { onClose(); setTimeout(() => onEdit(problem), 150) }}
+                  className="rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+                >
+                  수정
+                </button>
+              )}
+              {problem && onDelete && (
+                <button
+                  type="button"
+                  onClick={() => { onClose(); setTimeout(() => onDelete(problem), 150) }}
+                  className="rounded-lg border border-red-200 dark:border-red-900 px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+                >
+                  삭제
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close"
+                className="h-8 w-8 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors flex items-center justify-center text-xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+          </div>
 
           {/* Scrollable content */}
-          <div className="overflow-y-auto px-6 pb-8 pt-3 flex flex-col gap-5">
+          <div className="overflow-y-auto px-6 pb-8 pt-4 flex flex-col gap-5">
             {/* Category */}
             {problem?.category && (
               <div>
@@ -112,28 +140,6 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete }: Probl
                     <Badge key={kw}>{kw}</Badge>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* Actions */}
-            {problem && (onEdit || onDelete) && (
-              <div className="flex gap-3 pt-1">
-                {onEdit && (
-                  <button
-                    onClick={() => { onClose(); setTimeout(() => onEdit(problem), 150) }}
-                    className="flex-1 rounded-xl border border-gray-300 dark:border-neutral-700 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
-                  >
-                    수정
-                  </button>
-                )}
-                {onDelete && (
-                  <button
-                    onClick={() => { onClose(); setTimeout(() => onDelete(problem), 150) }}
-                    className="flex-1 rounded-xl border border-red-200 dark:border-red-900 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
-                  >
-                    삭제
-                  </button>
-                )}
               </div>
             )}
           </div>

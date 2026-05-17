@@ -62,6 +62,7 @@
     "add": "주제 추가",
     "edit": "주제 수정",
     "delete": "주제 삭제",
+    "detail": "주제 상세",
     "deleteConfirm": "이 주제를 삭제하시겠습니까?",
     "question": "주제",
     "answer": "설명",

@@ -10,9 +10,10 @@ interface ModalProps {
   title: string
   children: React.ReactNode
   className?: string
+  headerRight?: React.ReactNode
 }
 
-export function Modal({ open, onClose, title, children, className }: ModalProps) {
+export function Modal({ open, onClose, title, children, className, headerRight }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -35,12 +36,17 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
     >
       <div
         className={cn(
-          "w-full max-w-md rounded-2xl bg-white dark:bg-neutral-900 shadow-xl p-6",
+          "w-full max-w-md max-h-[90dvh] rounded-2xl bg-white dark:bg-neutral-900 shadow-xl flex flex-col overflow-hidden",
           className
         )}
       >
-        <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
-        {children}
+        <div className="flex items-center justify-between gap-3 border-b border-gray-100 dark:border-neutral-800 px-6 py-4 shrink-0">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
+          {headerRight && (
+            <div className="shrink-0 flex items-center gap-2">{headerRight}</div>
+          )}
+        </div>
+        <div className="overflow-y-auto px-6 py-4">{children}</div>
       </div>
     </div>
   )

@@ -16,9 +16,11 @@ interface ProblemFormProps {
   onSubmit: (data: { question: string; answer: string; keywords: string[]; categoryId: string | null; images: string[] }) => Promise<void>
   onCancel: () => void
   isLoading?: boolean
+  formId?: string
+  hideActions?: boolean
 }
 
-export function ProblemForm({ initial, categories, onSubmit, onCancel, isLoading }: ProblemFormProps) {
+export function ProblemForm({ initial, categories, onSubmit, onCancel, isLoading, formId, hideActions }: ProblemFormProps) {
   const { t } = useTranslation()
   const [question, setQuestion] = useState(initial?.question ?? "")
   const [answer, setAnswer] = useState(initial?.answer ?? "")
@@ -32,6 +34,7 @@ export function ProblemForm({ initial, categories, onSubmit, onCancel, isLoading
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (uploading) return
     await onSubmit({ question, answer, keywords, categoryId: categoryId || null, images })
   }
 
@@ -59,7 +62,7 @@ export function ProblemForm({ initial, categories, onSubmit, onCancel, isLoading
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form id={formId} onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div>
         <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
           {t("problems.question")} *
@@ -190,14 +193,16 @@ export function ProblemForm({ initial, categories, onSubmit, onCancel, isLoading
         </select>
       </div>
 
-      <div className="flex justify-end gap-2 pt-2">
-        <Button type="button" variant="secondary" onClick={onCancel}>
-          {t("common.cancel")}
-        </Button>
-        <Button type="submit" disabled={isLoading || uploading}>
-          {t("common.save")}
-        </Button>
-      </div>
+      {!hideActions && (
+        <div className="flex justify-end gap-2 pt-2">
+          <Button type="button" variant="secondary" onClick={onCancel}>
+            {t("common.cancel")}
+          </Button>
+          <Button type="submit" disabled={isLoading || uploading}>
+            {t("common.save")}
+          </Button>
+        </div>
+      )}
     </form>
   )
 }

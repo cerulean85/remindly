@@ -117,7 +117,7 @@ function ProblemCard({
   return (
     <div
       className={cn(
-        "relative flex h-full flex-col overflow-hidden rounded-lg border shadow-sm",
+        "relative flex h-full min-h-52 flex-col overflow-hidden rounded-lg border shadow-sm",
         isGold
           ? "bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-500/15 dark:to-amber-700/10 border-amber-300 dark:border-amber-600/40"
           : "bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-800"
@@ -147,7 +147,7 @@ function ProblemCard({
             </span>
           )}
         </div>
-        <p className="text-xs text-gray-500 line-clamp-2">{problem.answer}</p>
+        <p className="text-xs text-gray-500 line-clamp-4">{problem.answer}</p>
         {problem.keywords.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
             {problem.keywords.slice(0, 3).map((kw) => (
@@ -523,9 +523,21 @@ export default function ProblemsPage() {
         open={showAdd}
         onClose={() => setShowAdd(false)}
         title={t("problems.add")}
-        className="max-w-2xl max-h-[90dvh] overflow-y-auto"
+        className="max-w-2xl"
+        headerRight={
+          <>
+            <Button variant="secondary" size="sm" type="button" onClick={() => setShowAdd(false)}>
+              {t("common.cancel")}
+            </Button>
+            <Button size="sm" type="submit" form="problem-form-add" disabled={createMutation.isPending}>
+              {t("common.save")}
+            </Button>
+          </>
+        }
       >
         <ProblemForm
+          formId="problem-form-add"
+          hideActions
           categories={categories}
           onSubmit={(data) => createMutation.mutateAsync(data)}
           onCancel={() => setShowAdd(false)}
@@ -537,10 +549,22 @@ export default function ProblemsPage() {
         open={!!editTarget}
         onClose={() => setEditTarget(null)}
         title={t("problems.edit")}
-        className="max-w-2xl max-h-[90dvh] overflow-y-auto"
+        className="max-w-2xl"
+        headerRight={
+          <>
+            <Button variant="secondary" size="sm" type="button" onClick={() => setEditTarget(null)}>
+              {t("common.cancel")}
+            </Button>
+            <Button size="sm" type="submit" form="problem-form-edit" disabled={editMutation.isPending}>
+              {t("common.save")}
+            </Button>
+          </>
+        }
       >
         {editTarget && (
           <ProblemForm
+            formId="problem-form-edit"
+            hideActions
             initial={editTarget}
             categories={categories}
             onSubmit={(data) => editMutation.mutateAsync({ id: editTarget.id, ...data })}
