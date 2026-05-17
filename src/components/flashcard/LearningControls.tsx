@@ -6,12 +6,12 @@ import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
 interface LearningControlsProps {
-  hasPrev: boolean
-  onPrev: () => void
-  onSkip: () => void
   onMarkWrong: () => void
   onBlurry: () => void
   onKnow: () => void
+  onPrev: () => void
+  onNext: () => void
+  hasPrev: boolean
 }
 
 const ratingBaseClass =
@@ -26,7 +26,14 @@ const blurryClass =
 const vividClass =
   "bg-emerald-500 text-white hover:bg-emerald-600 focus-visible:ring-emerald-500"
 
-export function LearningControls({ hasPrev, onPrev, onSkip, onMarkWrong, onBlurry, onKnow }: LearningControlsProps) {
+export function LearningControls({
+  onMarkWrong,
+  onBlurry,
+  onKnow,
+  onPrev,
+  onNext,
+  hasPrev,
+}: LearningControlsProps) {
   const { t } = useTranslation()
 
   return (
@@ -43,11 +50,22 @@ export function LearningControls({ hasPrev, onPrev, onSkip, onMarkWrong, onBlurr
         </button>
       </div>
       <div className="flex gap-2">
-        <Button variant="secondary" className="px-3" onClick={onPrev} disabled={!hasPrev}>
+        <Button
+          variant="secondary"
+          className="flex-1 px-3"
+          onClick={onPrev}
+          disabled={!hasPrev}
+          aria-label={t("learn.prev")}
+        >
           ←
         </Button>
-        <Button variant="secondary" className="flex-1" onClick={onSkip}>
-          {t("learn.skip")}
+        <Button
+          variant="secondary"
+          className="flex-1 px-3"
+          onClick={onNext}
+          aria-label={t("learn.next")}
+        >
+          →
         </Button>
       </div>
     </div>

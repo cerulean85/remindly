@@ -211,12 +211,12 @@ function LearnSession({
           ) : (
             <>
               <LearningControls
-                hasPrev={index > 0}
-                onPrev={prev}
-                onSkip={() => next()}
                 onMarkWrong={() => next("skip")}
                 onBlurry={() => next("blurry")}
                 onKnow={() => next("vivid")}
+                onPrev={prev}
+                onNext={() => next()}
+                hasPrev={index > 0}
               />
               <FlashCard
                 key={current.id}
@@ -225,6 +225,8 @@ function LearnSession({
                 onClick={flip}
                 timeLeft={timerSeconds > 0 ? timeLeft : null}
                 timerTotal={timerSeconds}
+                onSwipeLeft={() => next()}
+                onSwipeRight={prev}
               />
             </>
           )}

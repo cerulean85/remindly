@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type MouseEvent, type ReactNode } from "react"
+import { useRef, useState, type MouseEvent, type ReactNode, type TouchEvent } from "react"
 import { cn } from "@/lib/utils"
 import type { Problem } from "@/types"
 import { CategoryBadge } from "@/components/categories/CategoryBadge"
@@ -17,11 +17,25 @@ interface FlashCardProps {
   onClick: () => void
   timeLeft?: number | null
   timerTotal?: number
+  onSwipeLeft?: () => void
+  onSwipeRight?: () => void
 }
 
-export function FlashCard({ problem, isFlipped, onClick, timeLeft, timerTotal }: FlashCardProps) {
+const SWIPE_THRESHOLD = 50
+
+export function FlashCard({
+  problem,
+  isFlipped,
+  onClick,
+  timeLeft,
+  timerTotal,
+  onSwipeLeft,
+  onSwipeRight,
+}: FlashCardProps) {
   const [recordModalMode, setRecordModalMode] = useState<"list" | "create" | null>(null)
   const [recordCountDelta, setRecordCountDelta] = useState(0)
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
+  const didSwipeRef = useRef(false)
   const showTimer = !isFlipped && typeof timeLeft === "number" && timerTotal && timerTotal > 0
   const isUrgent = showTimer && timeLeft! <= 5
   const wrongCount = problem.mistakeNote?.skipCount ?? 0
@@ -34,11 +48,41 @@ export function FlashCard({ problem, isFlipped, onClick, timeLeft, timerTotal }:
     setRecordModalMode(mode)
   }
 
+  const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    const touch = event.touches[0]
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY }
+    didSwipeRef.current = false
+  }
+
+  const handleTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+    const start = touchStartRef.current
+    touchStartRef.current = null
+    if (!start) return
+    const touch = event.changedTouches[0]
+    const dx = touch.clientX - start.x
+    const dy = touch.clientY - start.y
+    if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
+      didSwipeRef.current = true
+      if (dx < 0) onSwipeLeft?.()
+      else onSwipeRight?.()
+    }
+  }
+
+  const handleClick = () => {
+    if (didSwipeRef.current) {
+      didSwipeRef.current = false
+      return
+    }
+    onClick()
+  }
+
   return (
     <>
       <div
-        className="[perspective:1000px] w-full cursor-pointer select-none"
-        onClick={onClick}
+        className="[perspective:1000px] w-full cursor-pointer select-none touch-pan-y"
+        onClick={handleClick}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         {/* grid로 두 면이 같은 셀을 차지 → 높이 자동 결정 */}
         <div
