@@ -117,7 +117,7 @@ function ProblemCard({
   return (
     <div
       className={cn(
-        "relative flex h-full min-h-52 flex-col overflow-hidden rounded-lg border shadow-sm",
+        "relative flex h-full min-h-44 flex-col overflow-hidden rounded-lg border shadow-sm",
         isGold
           ? "bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-500/15 dark:to-amber-700/10 border-amber-300 dark:border-amber-600/40"
           : "bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-800"
@@ -147,7 +147,7 @@ function ProblemCard({
             </span>
           )}
         </div>
-        <p className="text-xs text-gray-500 line-clamp-4">{problem.answer}</p>
+        <p className="text-xs text-gray-500 line-clamp-3">{problem.answer}</p>
         {problem.keywords.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
             {problem.keywords.slice(0, 3).map((kw) => (
@@ -161,7 +161,7 @@ function ProblemCard({
       </button>
 
       <div className={cn(
-        "mt-auto flex items-center justify-between px-4 py-3 border-t",
+        "mt-auto flex items-center justify-between px-4 py-1.5 border-t",
         isGold ? "border-amber-200/60 dark:border-amber-600/30" : "border-gray-100 dark:border-neutral-800"
       )}>
         <CategoryBadge category={problem.category} />
