@@ -1,12 +1,13 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/Button"
-import { Modal } from "@/components/ui/Modal"
 import { ConfirmModal } from "@/components/ui/Modal"
-import { ProblemForm } from "@/components/problems/ProblemForm"
 import { ProblemDetailSheet } from "@/components/problems/ProblemDetailSheet"
+import { LearningProgressBar } from "@/components/problems/LearningProgressBar"
 import { CategoryBadge } from "@/components/categories/CategoryBadge"
 import { Badge } from "@/components/ui/Badge"
 import { ProblemsPageSkeleton } from "@/components/ui/Skeleton"
@@ -78,6 +79,7 @@ function ProblemRow({
             )}
           </div>
           <p className="truncate text-xs text-gray-500 mt-0.5">{problem.answer}</p>
+          <LearningProgressBar problem={problem} size="sm" className="mt-1.5 max-w-[12rem]" />
         </div>
         <div className="shrink-0">
           <CategoryBadge category={problem.category} />
@@ -158,6 +160,7 @@ function ProblemCard({
             )}
           </div>
         )}
+        <LearningProgressBar problem={problem} size="sm" className="mt-2 w-full" />
       </button>
 
       <div className={cn(
@@ -188,11 +191,11 @@ type ProblemsPage = { items: Problem[]; total: number; nextOffset: number | null
 
 export default function ProblemsPage() {
   const { t } = useTranslation()
+  const router = useRouter()
   const queryClient = useQueryClient()
-  const [showAdd, setShowAdd] = useState(false)
   const [detailTarget, setDetailTarget] = useState<Problem | null>(null)
-  const [editTarget, setEditTarget] = useState<Problem | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Problem | null>(null)
+  const goToEdit = (p: Problem) => router.push(`/problems/${p.id}/edit`)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
@@ -272,24 +275,6 @@ export default function ProblemsPage() {
     return () => obs.disconnect()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  const createMutation = useMutation({
-    mutationFn: async (data: { question: string; answer: string; keywords: string[]; categoryId: string | null; images: string[] }) => {
-      const r = await fetch("/api/problems", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
-      if (!r.ok) throw new Error(await r.text())
-      return r.json()
-    },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["problems"] }); setShowAdd(false) },
-  })
-
-  const editMutation = useMutation({
-    mutationFn: async (data: { id: string; question: string; answer: string; keywords: string[]; categoryId: string | null }) => {
-      const r = await fetch(`/api/problems/${data.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
-      if (!r.ok) throw new Error(await r.text())
-      return r.json()
-    },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["problems"] }); setEditTarget(null) },
-  })
-
   const deleteMutation = useMutation({
     mutationFn: (id: string) => fetch(`/api/problems/${id}`, { method: "DELETE" }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["problems"] }); setDeleteTarget(null) },
@@ -322,9 +307,11 @@ export default function ProblemsPage() {
     <div className="mx-auto max-w-lg sm:max-w-3xl lg:max-w-5xl xl:max-w-7xl px-4 py-6">
       <div className="mb-4 flex items-center">
         <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t("problems.title")}</h1>
-        <Button size="sm" className="ml-auto" onClick={() => setShowAdd(true)}>
-          + {t("problems.add")}
-        </Button>
+        <Link href="/problems/new" className="ml-auto">
+          <Button size="sm">
+            + {t("problems.add")}
+          </Button>
+        </Link>
       </div>
 
       <div className="mb-3 flex flex-wrap gap-2">
@@ -489,7 +476,7 @@ export default function ProblemsPage() {
                   problem={p}
                   isGold={isGold}
                   onDetail={setDetailTarget}
-                  onEdit={setEditTarget}
+                  onEdit={goToEdit}
                   onDelete={setDeleteTarget}
                 />
               ) : (
@@ -498,7 +485,7 @@ export default function ProblemsPage() {
                   problem={p}
                   isGold={isGold}
                   onDetail={setDetailTarget}
-                  onEdit={setEditTarget}
+                  onEdit={goToEdit}
                   onDelete={setDeleteTarget}
                 />
               )
@@ -519,61 +506,6 @@ export default function ProblemsPage() {
         </>
       )}
 
-      <Modal
-        open={showAdd}
-        onClose={() => setShowAdd(false)}
-        title={t("problems.add")}
-        className="max-w-2xl"
-        headerRight={
-          <>
-            <Button variant="secondary" size="sm" type="button" onClick={() => setShowAdd(false)}>
-              {t("common.cancel")}
-            </Button>
-            <Button size="sm" type="submit" form="problem-form-add" disabled={createMutation.isPending}>
-              {t("common.save")}
-            </Button>
-          </>
-        }
-      >
-        <ProblemForm
-          formId="problem-form-add"
-          hideActions
-          categories={categories}
-          onSubmit={(data) => createMutation.mutateAsync(data)}
-          onCancel={() => setShowAdd(false)}
-          isLoading={createMutation.isPending}
-        />
-      </Modal>
-
-      <Modal
-        open={!!editTarget}
-        onClose={() => setEditTarget(null)}
-        title={t("problems.edit")}
-        className="max-w-2xl"
-        headerRight={
-          <>
-            <Button variant="secondary" size="sm" type="button" onClick={() => setEditTarget(null)}>
-              {t("common.cancel")}
-            </Button>
-            <Button size="sm" type="submit" form="problem-form-edit" disabled={editMutation.isPending}>
-              {t("common.save")}
-            </Button>
-          </>
-        }
-      >
-        {editTarget && (
-          <ProblemForm
-            formId="problem-form-edit"
-            hideActions
-            initial={editTarget}
-            categories={categories}
-            onSubmit={(data) => editMutation.mutateAsync({ id: editTarget.id, ...data })}
-            onCancel={() => setEditTarget(null)}
-            isLoading={editMutation.isPending}
-          />
-        )}
-      </Modal>
-
       <ConfirmModal
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
@@ -585,7 +517,7 @@ export default function ProblemsPage() {
       <ProblemDetailSheet
         problem={detailTarget}
         onClose={() => setDetailTarget(null)}
-        onEdit={setEditTarget}
+        onEdit={goToEdit}
         onDelete={setDeleteTarget}
       />
     </div>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { retrievalStats } from "@/lib/stats"
+import { progressCount } from "@/lib/learningStages"
 import { withAuth } from "@/lib/withAuth"
 import type { Prisma } from "@prisma/client"
 
@@ -14,6 +15,11 @@ type ProblemWithStats = {
   userId: string
   createdAt: Date
   updatedAt: Date
+  definition: boolean
+  components: boolean
+  diagram: boolean
+  comparison: boolean
+  linkage: boolean
   category: { id: string; name: string; color: string; userId: string; createdAt: Date } | null
   mistakeNote: {
     id: string
@@ -31,6 +37,7 @@ type ProblemWithStats = {
   mistakeRecordCount: number
   totalCount: number
   lastStudiedAt: Date | null
+  progressCount: number
 }
 
 function withStats(problems: Awaited<ReturnType<typeof fetchProblems>>): ProblemWithStats[] {
@@ -42,6 +49,7 @@ function withStats(problems: Awaited<ReturnType<typeof fetchProblems>>): Problem
       mistakeRecordCount: p._count.mistakeRecords,
       totalCount: total,
       lastStudiedAt: p.mistakeNote?.lastStudiedAt ?? null,
+      progressCount: progressCount(p),
     }
   })
 }

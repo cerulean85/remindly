@@ -1,41 +1,119 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/Button"
 import { MarkdownPreview } from "@/components/notes/MarkdownPreview"
 import { TagInput } from "./TagInput"
 import { uploadImage } from "@/lib/uploadImage"
 import { cn } from "@/lib/utils"
+import { useDraftAutosave } from "@/hooks/useDraftAutosave"
 import type { Category, Problem } from "@/types"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
+export type ProblemFormState = {
+  question: string
+  answer: string
+  keywords: string[]
+  categoryId: string
+  images: string[]
+}
+
 interface ProblemFormProps {
   initial?: Partial<Problem>
   categories: Category[]
-  onSubmit: (data: { question: string; answer: string; keywords: string[]; categoryId: string | null; images: string[] }) => Promise<void>
+  onSubmit: (data: {
+    question: string
+    answer: string
+    keywords: string[]
+    categoryId: string | null
+    images: string[]
+  }) => Promise<void>
   onCancel: () => void
   isLoading?: boolean
   formId?: string
   hideActions?: boolean
+  /** When set, mirrors form state to localStorage under this key. */
+  autosaveKey?: string | null
+  /** Notified whenever dirty/valid status changes. */
+  onStateChange?: (state: { isDirty: boolean; isValid: boolean; isUploading: boolean }) => void
 }
 
-export function ProblemForm({ initial, categories, onSubmit, onCancel, isLoading, formId, hideActions }: ProblemFormProps) {
+function buildInitialState(initial?: Partial<Problem>): ProblemFormState {
+  return {
+    question: initial?.question ?? "",
+    answer: initial?.answer ?? "",
+    keywords: initial?.keywords ?? [],
+    categoryId: initial?.categoryId ?? "",
+    images: initial?.images ?? [],
+  }
+}
+
+function sameState(a: ProblemFormState, b: ProblemFormState) {
+  return (
+    a.question === b.question &&
+    a.answer === b.answer &&
+    a.categoryId === b.categoryId &&
+    a.keywords.length === b.keywords.length &&
+    a.keywords.every((k, i) => k === b.keywords[i]) &&
+    a.images.length === b.images.length &&
+    a.images.every((url, i) => url === b.images[i])
+  )
+}
+
+export function ProblemForm({
+  initial,
+  categories,
+  onSubmit,
+  onCancel,
+  isLoading,
+  formId,
+  hideActions,
+  autosaveKey,
+  onStateChange,
+}: ProblemFormProps) {
   const { t } = useTranslation()
-  const [question, setQuestion] = useState(initial?.question ?? "")
-  const [answer, setAnswer] = useState(initial?.answer ?? "")
-  const [keywords, setKeywords] = useState<string[]>(initial?.keywords ?? [])
-  const [categoryId, setCategoryId] = useState<string>(initial?.categoryId ?? "")
-  const [images, setImages] = useState<string[]>(initial?.images ?? [])
+  const baselineRef = useRef<ProblemFormState>(buildInitialState(initial))
+  const [question, setQuestion] = useState(baselineRef.current.question)
+  const [answer, setAnswer] = useState(baselineRef.current.answer)
+  const [keywords, setKeywords] = useState<string[]>(baselineRef.current.keywords)
+  const [categoryId, setCategoryId] = useState<string>(baselineRef.current.categoryId)
+  const [images, setImages] = useState<string[]>(baselineRef.current.images)
   const [answerView, setAnswerView] = useState<"write" | "preview">("write")
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const currentState: ProblemFormState = { question, answer, keywords, categoryId, images }
+
+  const { restored, clear: clearDraft } = useDraftAutosave<ProblemFormState>(
+    autosaveKey ?? null,
+    currentState,
+    { debounceMs: 800 },
+  )
+
+  useEffect(() => {
+    if (!restored) return
+    if (sameState(restored, baselineRef.current)) return
+    setQuestion(restored.question)
+    setAnswer(restored.answer)
+    setKeywords(restored.keywords)
+    setCategoryId(restored.categoryId)
+    setImages(restored.images)
+  }, [restored])
+
+  const isDirty = !sameState(currentState, baselineRef.current)
+  const isValid = question.trim().length > 0 && answer.trim().length > 0
+  useEffect(() => {
+    onStateChange?.({ isDirty, isValid, isUploading: uploading })
+  }, [isDirty, isValid, uploading, onStateChange])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (uploading) return
     await onSubmit({ question, answer, keywords, categoryId: categoryId || null, images })
+    clearDraft()
+    baselineRef.current = currentState
   }
 
   const handleFiles = async (files: FileList | null) => {

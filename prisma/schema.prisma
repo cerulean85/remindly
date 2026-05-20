@@ -86,6 +86,11 @@ model Problem {
   categoryId    String?
   userId        String
   retrievalRate Int      @default(0)
+  definition    Boolean  @default(false)
+  components    Boolean  @default(false)
+  diagram       Boolean  @default(false)
+  comparison    Boolean  @default(false)
+  linkage       Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

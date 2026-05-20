@@ -91,7 +91,21 @@
     "viewGrid": "그리드 보기",
     "viewList": "리스트 보기",
     "resetFilters": "필터 초기화",
-    "allLoaded": "전체 {{count}}개를 모두 불러왔습니다."
+    "allLoaded": "전체 {{count}}개를 모두 불러왔습니다.",
+    "stage": {
+      "sectionTitle": "학습 프로세스",
+      "definition": "정의",
+      "components": "구성요소",
+      "diagram": "도식화",
+      "comparison": "비교",
+      "linkage": "연계",
+      "progressLabel": "학습 단계 {{count}}/{{total}} 완료"
+    },
+    "back": "뒤로",
+    "draftRestored": "저장된 작성 중인 내용을 불러왔습니다.",
+    "leaveConfirm": "작성 중인 내용이 사라질 수 있습니다. 정말 나가시겠습니까?",
+    "savingDraft": "임시 저장 중...",
+    "draftSaved": "임시 저장됨"
   },
   "mistakes": {
     "title": "오답 기록",

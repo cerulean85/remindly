@@ -1,12 +1,12 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ProblemDetailSheet } from "@/components/problems/ProblemDetailSheet"
-import { ProblemForm } from "@/components/problems/ProblemForm"
 import { ConfirmModal, Modal } from "@/components/ui/Modal"
 import { cn } from "@/lib/utils"
-import type { Category, Problem } from "@/types"
+import type { Problem } from "@/types"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
@@ -56,14 +56,15 @@ function ratingDot(rating: string) {
 
 export default function RetrievalPage() {
   const { t } = useTranslation()
+  const router = useRouter()
   const queryClient = useQueryClient()
   const today = new Date()
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth() + 1)
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null)
   const [detailId, setDetailId] = useState<string | null>(null)
-  const [editTarget, setEditTarget] = useState<Problem | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Problem | null>(null)
+  const goToEdit = (p: Problem) => router.push(`/problems/${p.id}/edit`)
 
   const { data: detailProblem } = useQuery<Problem>({
     queryKey: ["problem", detailId],
@@ -71,44 +72,9 @@ export default function RetrievalPage() {
     enabled: !!detailId,
   })
 
-  const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ["categories"],
-    queryFn: () => fetch("/api/categories").then((r) => r.json()),
-  })
-
   const { data, isLoading } = useQuery<CalendarResponse>({
     queryKey: ["retrieval-calendar", year, month],
     queryFn: () => fetch(`/api/retrieval/calendar?year=${year}&month=${month}`).then((r) => r.json()),
-  })
-
-  const editMutation = useMutation({
-    mutationFn: async (data: { id: string; question: string; answer: string; keywords: string[]; categoryId: string | null; images: string[] }) => {
-      const r = await fetch(`/api/problems/${data.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      })
-      if (!r.ok) throw new Error(await r.text())
-      return r.json() as Promise<Problem>
-    },
-    onSuccess: (updated) => {
-      queryClient.setQueryData(["problem", updated.id], updated)
-      queryClient.invalidateQueries({ queryKey: ["retrieval-calendar"] })
-      queryClient.invalidateQueries({ queryKey: ["problems"] })
-      setSelectedDay((day) => day && {
-        ...day,
-        items: day.items.map((item) => item.problemId === updated.id
-          ? {
-              ...item,
-              question: updated.question,
-              category: updated.category
-                ? { id: updated.category.id, name: updated.category.name, color: updated.category.color }
-                : null,
-            }
-          : item),
-      })
-      setEditTarget(null)
-    },
   })
 
   const deleteMutation = useMutation({
@@ -263,28 +229,9 @@ export default function RetrievalPage() {
       <ProblemDetailSheet
         problem={detailId && detailProblem?.id === detailId ? detailProblem : null}
         onClose={() => setDetailId(null)}
-        onEdit={setEditTarget}
+        onEdit={goToEdit}
         onDelete={setDeleteTarget}
       />
-
-      <Modal
-        open={!!editTarget}
-        onClose={() => setEditTarget(null)}
-        title={t("problems.edit")}
-        className="max-w-2xl max-h-[90dvh] overflow-y-auto"
-      >
-        {editTarget && (
-          <ProblemForm
-            initial={editTarget}
-            categories={categories}
-            onSubmit={async (data) => {
-              await editMutation.mutateAsync({ id: editTarget.id, ...data })
-            }}
-            onCancel={() => setEditTarget(null)}
-            isLoading={editMutation.isPending}
-          />
-        )}
-      </Modal>
 
       <ConfirmModal
         open={!!deleteTarget}

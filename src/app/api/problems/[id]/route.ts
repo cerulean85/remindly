@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { deleteObjectByUrl } from "@/lib/s3"
+import { sanitizeStageInput } from "@/lib/learningStages"
 import { withAuth } from "@/lib/withAuth"
+import { LEARNING_STAGE_KEYS } from "@/types"
 
 type RouteCtx = { params: Promise<{ id: string }> }
 
@@ -26,10 +28,18 @@ export const PATCH = withAuth<RouteCtx>(async (req, { userId, params }) => {
   if (!owned) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
   try {
-    const { question, answer, keywords, categoryId, images } = await req.json()
+    const body = await req.json()
+    const { question, answer, keywords, categoryId, images } = body
     const nextImages = Array.isArray(images)
       ? images.filter((u: unknown) => typeof u === "string")
       : undefined
+
+    const stageData: Partial<Record<(typeof LEARNING_STAGE_KEYS)[number], boolean>> = {}
+    for (const key of LEARNING_STAGE_KEYS) {
+      if (!(key in body)) continue
+      const parsed = sanitizeStageInput(body[key])
+      if (parsed !== undefined) stageData[key] = parsed
+    }
 
     const problem = await prisma.problem.update({
       where: { id },
@@ -39,6 +49,7 @@ export const PATCH = withAuth<RouteCtx>(async (req, { userId, params }) => {
         ...(Array.isArray(keywords) && { keywords }),
         ...(nextImages && { images: nextImages }),
         categoryId: categoryId !== undefined ? categoryId || null : undefined,
+        ...stageData,
       },
       include: { category: true },
     })

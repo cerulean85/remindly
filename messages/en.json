@@ -91,7 +91,21 @@
     "viewGrid": "Grid view",
     "viewList": "List view",
     "resetFilters": "Reset filters",
-    "allLoaded": "All {{count}} loaded."
+    "allLoaded": "All {{count}} loaded.",
+    "stage": {
+      "sectionTitle": "Learning process",
+      "definition": "Definition",
+      "components": "Components",
+      "diagram": "Diagram",
+      "comparison": "Comparison",
+      "linkage": "Linkage",
+      "progressLabel": "Learning stages {{count}}/{{total}} done"
+    },
+    "back": "Back",
+    "draftRestored": "Restored your in-progress draft.",
+    "leaveConfirm": "Your draft may be lost. Leave anyway?",
+    "savingDraft": "Saving draft...",
+    "draftSaved": "Draft saved"
   },
   "mistakes": {
     "title": "Mistake records",

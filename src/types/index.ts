@@ -7,6 +7,16 @@ export interface Category {
   _count?: { problems: number }
 }
 
+export const LEARNING_STAGE_KEYS = [
+  "definition",
+  "components",
+  "diagram",
+  "comparison",
+  "linkage",
+] as const
+
+export type LearningStageKey = (typeof LEARNING_STAGE_KEYS)[number]
+
 export interface Problem {
   id: string
   question: string
@@ -23,6 +33,12 @@ export interface Problem {
   retrievalRate?: number | null
   totalCount?: number
   lastStudiedAt?: string | null
+  definition?: boolean
+  components?: boolean
+  diagram?: boolean
+  comparison?: boolean
+  linkage?: boolean
+  progressCount?: number
 }
 
 export interface MistakeNote {
