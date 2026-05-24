@@ -222,7 +222,11 @@
     "summary": "{{problems}} problems · {{keywords}} keywords",
     "empty": "No problems yet — add some to draw the mind map.",
     "related": "Related mind map",
-    "noRelated": "No other problems share keywords with this one."
+    "noRelated": "No other problems share keywords with this one.",
+    "mode": {
+      "move": "Move",
+      "connect": "Connect"
+    }
   },
   "common": {
     "loading": "Loading...",

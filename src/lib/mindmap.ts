@@ -113,6 +113,72 @@ function endpointId(end: MindmapLink["source"]): string | null {
   return null
 }
 
+// Apply the same shape transformation as buildMindmapGraph for a single
+// (problemId, keyword) addition, so callers can patch a cached MindmapData
+// optimistically without re-fetching. Returns the input unchanged if the
+// connection already exists.
+export function applyKeywordConnection(
+  data: MindmapData,
+  problemId: string,
+  rawKeyword: string,
+): MindmapData {
+  const keyword = rawKeyword.trim()
+  if (!keyword) return data
+  const sourceId = problemNodeId(problemId)
+  const sourceNode = data.nodes.find(
+    (n) => n.type === "problem" && n.id === sourceId,
+  )
+  if (!sourceNode) return data
+
+  const nk = norm(keyword)
+  // If the keyword matches another problem's title, the canonical graph
+  // collapses this into a problem ↔ problem link.
+  const matchedProblem = data.nodes.find(
+    (n) => n.type === "problem" && n.id !== sourceId && norm(n.label) === nk,
+  )
+
+  const linkExists = (a: string, b: string) =>
+    data.links.some((l) => {
+      const s = endpointId(l.source)
+      const t = endpointId(l.target)
+      return (s === a && t === b) || (s === b && t === a)
+    })
+
+  if (matchedProblem) {
+    if (linkExists(sourceId, matchedProblem.id)) return data
+    return {
+      nodes: data.nodes,
+      links: [...data.links, { source: sourceId, target: matchedProblem.id }],
+    }
+  }
+
+  const kwId = keywordNodeId(keyword)
+  if (linkExists(sourceId, kwId)) return data
+
+  const existingKw = data.nodes.find((n) => n.id === kwId)
+  const nodes: MindmapNode[] =
+    existingKw && existingKw.type === "keyword"
+      ? data.nodes.map((n) =>
+          n.id === kwId && n.type === "keyword"
+            ? { ...n, degree: n.degree + 1 }
+            : n,
+        )
+      : [
+          ...data.nodes,
+          {
+            id: kwId,
+            type: "keyword",
+            keyword,
+            label: keyword,
+            degree: 1,
+          },
+        ]
+  return {
+    nodes,
+    links: [...data.links, { source: kwId, target: sourceId }],
+  }
+}
+
 // Extract the subgraph within `maxHops` of `focusedNodeId`. Keyword-node
 // degrees are recomputed against the extracted link set so node sizing
 // reflects the local neighborhood rather than the global graph.

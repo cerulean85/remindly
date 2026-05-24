@@ -11,11 +11,16 @@ const PROBLEM_DEFAULT_COLOR = "#10b981"
 const KEYWORD_COLOR_LIGHT = "#9ca3af"
 const KEYWORD_COLOR_DARK = "#52525b"
 
+export type MindmapMode = "move" | "connect"
+
 interface MindmapGraphProps {
   data: MindmapData
   onProblemPick: (problemId: string) => void
   onProblemHover?: (problemId: string | null) => void
   focusedNodeId?: string | null
+  mode?: MindmapMode
+  /** Called when the user drags one node onto another in connect mode. */
+  onConnect?: (source: MindmapNode, target: MindmapNode) => void
 }
 
 type PositionedNode = MindmapNode & { x?: number; y?: number }
@@ -46,12 +51,31 @@ export function MindmapGraph({
   onProblemPick,
   onProblemHover,
   focusedNodeId = null,
+  mode = "move",
+  onConnect,
 }: MindmapGraphProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState({ width: 0, height: 0 })
   const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const [pendingSourceId, setPendingSourceId] = useState<string | null>(null)
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === "dark"
+  const isConnectMode = mode === "connect"
+
+  // Reset any in-progress selection whenever the mode flips.
+  useEffect(() => {
+    setPendingSourceId(null)
+  }, [isConnectMode])
+
+  // ESC clears the pending source in connect mode.
+  useEffect(() => {
+    if (!isConnectMode) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPendingSourceId(null)
+    }
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [isConnectMode])
 
   useEffect(() => {
     const el = containerRef.current
@@ -98,7 +122,11 @@ export function MindmapGraph({
   const ringColor = isDark ? "#ffffff" : "#0f172a"
 
   return (
-    <div ref={containerRef} className="absolute inset-0">
+    <div
+      ref={containerRef}
+      className="absolute inset-0"
+      style={isConnectMode ? { cursor: "pointer" } : undefined}
+    >
       {size.width > 0 && size.height > 0 && (
         <ForceGraph2D
           width={size.width}
@@ -114,13 +142,55 @@ export function MindmapGraph({
           nodeLabel={() => ""}
           onNodeClick={(node) => {
             const n = node as MindmapNode
-            if (n.type === "problem") onProblemPick(n.problemId)
+            if (!isConnectMode) {
+              if (n.type === "problem") onProblemPick(n.problemId)
+              return
+            }
+            // Connect mode: click-to-click two nodes to link them.
+            if (pendingSourceId === null) {
+              setPendingSourceId(n.id)
+              return
+            }
+            if (pendingSourceId === n.id) {
+              setPendingSourceId(null)
+              return
+            }
+            const source = data.nodes.find((nd) => nd.id === pendingSourceId)
+            if (source) onConnect?.(source, n)
+            setPendingSourceId(null)
+          }}
+          onBackgroundClick={() => {
+            if (isConnectMode) setPendingSourceId(null)
           }}
           onNodeHover={(node) => {
             const n = node as MindmapNode | null
-            setHoveredId(n?.id ?? null)
+            const nextId = n?.id ?? null
+            setHoveredId(nextId)
             if (!onProblemHover) return
             onProblemHover(n && n.type === "problem" ? n.problemId : null)
+          }}
+          onRenderFramePost={(ctx) => {
+            // Preview line from the pending source to the hovered node.
+            if (!isConnectMode || !pendingSourceId || !hoveredId) return
+            if (hoveredId === pendingSourceId) return
+            const src = data.nodes.find(
+              (nd) => nd.id === pendingSourceId,
+            ) as PositionedNode | undefined
+            const tgt = data.nodes.find(
+              (nd) => nd.id === hoveredId,
+            ) as PositionedNode | undefined
+            if (!src || !tgt) return
+            if (src.x === undefined || src.y === undefined) return
+            if (tgt.x === undefined || tgt.y === undefined) return
+            ctx.save()
+            ctx.setLineDash([3, 3])
+            ctx.strokeStyle = "rgba(16, 185, 129, 0.85)"
+            ctx.lineWidth = 1.4
+            ctx.beginPath()
+            ctx.moveTo(src.x, src.y)
+            ctx.lineTo(tgt.x, tgt.y)
+            ctx.stroke()
+            ctx.restore()
           }}
           nodePointerAreaPaint={(node, color, ctx) => {
             const n = node as PositionedNode
@@ -145,6 +215,17 @@ export function MindmapGraph({
               !focused &&
               !adjacency.get(hoveredId)?.has(n.id)
             const alpha = dimmed ? 0.18 : 1
+            const isPendingSource = pendingSourceId === n.id
+
+            if (isPendingSource) {
+              const baseR =
+                n.type === "problem" ? PROBLEM_RADIUS : keywordRadius(n.degree)
+              ctx.beginPath()
+              ctx.arc(n.x, n.y, baseR + 5, 0, 2 * Math.PI)
+              ctx.strokeStyle = "#10b981"
+              ctx.lineWidth = 1.6
+              ctx.stroke()
+            }
 
             if (n.type === "problem") {
               const fill = n.categoryColor ?? PROBLEM_DEFAULT_COLOR

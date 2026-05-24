@@ -1,13 +1,14 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
-import { MindmapGraph } from "@/components/mindmap/MindmapGraph"
+import { MindmapGraph, type MindmapMode } from "@/components/mindmap/MindmapGraph"
 import { ProblemDetailSheet } from "@/components/problems/ProblemDetailSheet"
-import type { MindmapData } from "@/lib/mindmap"
+import { applyKeywordConnection, type MindmapData, type MindmapNode } from "@/lib/mindmap"
 import type { Problem } from "@/types"
+import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
@@ -25,6 +26,7 @@ export default function MindmapPage() {
   const queryClient = useQueryClient()
   const { resolvedTheme } = useTheme()
   const [selectedProblemId, setSelectedProblemId] = useState<string | null>(null)
+  const [mode, setMode] = useState<MindmapMode>("move")
 
   const { data, isLoading, error } = useQuery<MindmapData>({
     queryKey: ["mindmap"],
@@ -69,20 +71,102 @@ export default function MindmapPage() {
     })
   }
 
+  const connectMutation = useMutation({
+    mutationFn: async ({ problemId, keyword }: { problemId: string; keyword: string }) => {
+      const current = await fetchProblem(problemId)
+      const existing = current.keywords ?? []
+      const normalized = keyword.trim().toLowerCase()
+      if (existing.some((k) => k.trim().toLowerCase() === normalized)) return current
+      const next = [...existing, keyword.trim()]
+      const r = await fetch(`/api/problems/${problemId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keywords: next }),
+      })
+      if (!r.ok) throw new Error(await r.text())
+      return r.json() as Promise<Problem>
+    },
+    onMutate: async ({ problemId, keyword }) => {
+      // Patch the mindmap cache eagerly so the new link appears in the same
+      // frame as the second click; the server round-trip catches up later.
+      await queryClient.cancelQueries({ queryKey: ["mindmap"] })
+      const previous = queryClient.getQueryData<MindmapData>(["mindmap"])
+      if (previous) {
+        queryClient.setQueryData<MindmapData>(
+          ["mindmap"],
+          applyKeywordConnection(previous, problemId, keyword),
+        )
+      }
+      return { previous }
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) {
+        queryClient.setQueryData(["mindmap"], ctx.previous)
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["mindmap"] })
+      queryClient.invalidateQueries({ queryKey: ["problem-mindmap"] })
+      queryClient.invalidateQueries({ queryKey: ["problems"] })
+      queryClient.invalidateQueries({ queryKey: ["problem"] })
+      queryClient.invalidateQueries({ queryKey: ["keywords"] })
+    },
+  })
+
+  const handleConnect = (source: MindmapNode, target: MindmapNode) => {
+    const sIsProblem = source.type === "problem"
+    const tIsProblem = target.type === "problem"
+    if (!sIsProblem && !tIsProblem) return // keyword ↔ keyword: nothing to add
+
+    let problemId: string
+    let keyword: string
+    if (sIsProblem && tIsProblem) {
+      problemId = source.problemId
+      keyword = target.label
+    } else if (sIsProblem) {
+      problemId = source.problemId
+      keyword = (target as Extract<MindmapNode, { type: "keyword" }>).keyword
+    } else {
+      problemId = (target as Extract<MindmapNode, { type: "problem" }>).problemId
+      keyword = (source as Extract<MindmapNode, { type: "keyword" }>).keyword
+    }
+    if (!keyword.trim()) return
+    connectMutation.mutate({ problemId, keyword })
+  }
+
   return (
     <div className="relative flex h-full flex-col">
       <header className="flex items-center justify-between gap-3 border-b border-border-subtle px-4 py-3 md:px-6">
         <h1 className="text-lg font-semibold text-text-primary">
           {t("nav.mindmap")}
         </h1>
-        {data && (
-          <p className="text-xs text-text-secondary">
-            {t("mindmap.summary", {
-              problems: data.nodes.filter((n) => n.type === "problem").length,
-              keywords: data.nodes.filter((n) => n.type === "keyword").length,
-            })}
-          </p>
-        )}
+        <div className="flex items-center gap-3">
+          <div className="flex rounded-full border border-border-default bg-surface-elevated overflow-hidden text-xs">
+            {(["move", "connect"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                className={cn(
+                  "px-3 py-1 transition-colors",
+                  mode === m
+                    ? "bg-emerald-500 text-white"
+                    : "text-text-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]",
+                )}
+              >
+                {t(`mindmap.mode.${m}`)}
+              </button>
+            ))}
+          </div>
+          {data && (
+            <p className="text-xs text-text-secondary">
+              {t("mindmap.summary", {
+                problems: data.nodes.filter((n) => n.type === "problem").length,
+                keywords: data.nodes.filter((n) => n.type === "keyword").length,
+              })}
+            </p>
+          )}
+        </div>
       </header>
 
       <div
@@ -109,6 +193,8 @@ export default function MindmapPage() {
             data={data}
             onProblemPick={setSelectedProblemId}
             onProblemHover={handleProblemHover}
+            mode={mode}
+            onConnect={handleConnect}
           />
         )}
       </div>
