@@ -6,6 +6,7 @@
     "mistakes": "Mistake records",
     "problems": "Problems",
     "notes": "Notes",
+    "mindmap": "Mind map",
     "settings": "Settings",
     "collapse": "Collapse navigator",
     "expand": "Expand navigator"
@@ -68,6 +69,7 @@
     "answer": "Description",
     "keywords": "Related Keywords",
     "keywordsPlaceholder": "Type keyword and press Enter or comma",
+    "frequentlyUsed": "Frequently used",
     "category": "Category",
     "noCategory": "No Category",
     "save": "Save",
@@ -214,6 +216,12 @@
     "gold": "Gold (Vivid)",
     "silver": "Silver (Blurry)",
     "noEntries": "No entries."
+  },
+  "mindmap": {
+    "summary": "{{problems}} problems · {{keywords}} keywords",
+    "empty": "No problems yet — add some to draw the mind map.",
+    "related": "Related mind map",
+    "noRelated": "No other problems share keywords with this one."
   },
   "common": {
     "loading": "Loading...",

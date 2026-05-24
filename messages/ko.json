@@ -6,6 +6,7 @@
     "mistakes": "오답 기록",
     "problems": "주제 관리",
     "notes": "메모",
+    "mindmap": "마인드맵",
     "settings": "설정",
     "collapse": "내비게이터 접기",
     "expand": "내비게이터 펼치기"
@@ -68,6 +69,7 @@
     "answer": "설명",
     "keywords": "관련 키워드",
     "keywordsPlaceholder": "키워드 입력 후 Enter 또는 쉼표",
+    "frequentlyUsed": "자주 사용",
     "category": "카테고리",
     "noCategory": "카테고리 없음",
     "save": "저장",
@@ -214,6 +216,12 @@
     "gold": "금색 (Vivid)",
     "silver": "은색 (Blurry)",
     "noEntries": "기록이 없습니다."
+  },
+  "mindmap": {
+    "summary": "주제 {{problems}}개 · 키워드 {{keywords}}개",
+    "empty": "등록된 주제가 없어 마인드맵을 그릴 수 없습니다.",
+    "related": "관련 마인드맵",
+    "noRelated": "이 주제와 키워드를 공유하는 다른 주제가 없습니다."
   },
   "common": {
     "loading": "로딩 중...",

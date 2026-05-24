@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/Button"
@@ -36,6 +36,22 @@ const SORT_OPTIONS: Array<{ key: SortKey; labelKey: string }> = [
 
 type ViewMode = "grid" | "list"
 const VIEW_STORAGE_KEY = "problems.viewMode"
+
+const VALID_SORT_KEYS = new Set<SortKey>([
+  "createdAt:desc",
+  "createdAt:asc",
+  "retrievalRate:desc",
+  "retrievalRate:asc",
+  "vividCount:desc",
+  "vividCount:asc",
+  "lastStudiedAt:desc",
+  "lastStudiedAt:asc",
+])
+
+function parseSortKey(raw: string | null): SortKey {
+  if (raw && (VALID_SORT_KEYS as Set<string>).has(raw)) return raw as SortKey
+  return DEFAULT_SORT_KEY
+}
 
 function ProblemRow({
   problem,
@@ -192,15 +208,53 @@ type ProblemsPage = { items: Problem[]; total: number; nextOffset: number | null
 export default function ProblemsPage() {
   const { t } = useTranslation()
   const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const queryClient = useQueryClient()
   const [detailTarget, setDetailTarget] = useState<Problem | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Problem | null>(null)
   const goToEdit = (p: Problem) => router.push(`/problems/${p.id}/edit`)
+
+  // Filters are hydrated from the URL on mount and mirrored back to the URL on
+  // change, so navigating away (e.g. to the edit page) and back via
+  // router.back() restores the same view. Hydration is deferred to a post-mount
+  // effect (same pattern as viewMode below) to avoid any SSR/CSR mismatch from
+  // reading useSearchParams() inside a useState initializer.
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
   const [sortKey, setSortKey] = useState<SortKey>(DEFAULT_SORT_KEY)
+  const [filtersHydrated, setFiltersHydrated] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
+
+  useEffect(() => {
+    let active = true
+    queueMicrotask(() => {
+      if (!active) return
+      const q = (searchParams.get("q") ?? "").trim()
+      setSelectedCategoryId(searchParams.get("category"))
+      setSearchInput(q)
+      setDebouncedSearch(q)
+      setSortKey(parseSortKey(searchParams.get("sort")))
+      setFiltersHydrated(true)
+    })
+    return () => {
+      active = false
+    }
+    // Run once on mount; subsequent URL changes flow state → URL below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (!filtersHydrated) return
+    const params = new URLSearchParams()
+    if (selectedCategoryId) params.set("category", selectedCategoryId)
+    if (debouncedSearch) params.set("q", debouncedSearch)
+    if (sortKey !== DEFAULT_SORT_KEY) params.set("sort", sortKey)
+    const next = params.toString()
+    if (next === searchParams.toString()) return
+    router.replace(next ? `${pathname}?${next}` : pathname, { scroll: false })
+  }, [filtersHydrated, selectedCategoryId, debouncedSearch, sortKey, pathname, router, searchParams])
 
   useEffect(() => {
     if (typeof window === "undefined") return

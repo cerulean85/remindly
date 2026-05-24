@@ -153,6 +153,22 @@ export function NotesIcon(props: IconProps) {
   )
 }
 
+export function MindmapIcon(props: IconProps) {
+  return (
+    <svg {...svgBase(undefined, props)}>
+      <circle cx="12" cy="12" r="2.5" />
+      <circle cx="5" cy="5" r="1.5" />
+      <circle cx="19" cy="5" r="1.5" />
+      <circle cx="5" cy="19" r="1.5" />
+      <circle cx="19" cy="19" r="1.5" />
+      <line x1="12" y1="12" x2="5.8" y2="5.8" />
+      <line x1="12" y1="12" x2="18.2" y2="5.8" />
+      <line x1="12" y1="12" x2="5.8" y2="18.2" />
+      <line x1="12" y1="12" x2="18.2" y2="18.2" />
+    </svg>
+  )
+}
+
 export function InboxEmptyIcon(props: IconProps) {
   return (
     <svg {...svgBase(undefined, props)}>

@@ -10,6 +10,7 @@ import {
   MistakesIcon,
   ProblemsIcon,
   NotesIcon,
+  MindmapIcon,
 } from "@/components/ui/Icons"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
@@ -24,6 +25,7 @@ const links: { href: string; labelKey: string; Icon: ComponentType<IconProps> }[
   { href: "/mistakes", labelKey: "nav.mistakes", Icon: MistakesIcon },
   { href: "/problems", labelKey: "nav.problems", Icon: ProblemsIcon },
   { href: "/notes", labelKey: "nav.notes", Icon: NotesIcon },
+  { href: "/mindmap", labelKey: "nav.mindmap", Icon: MindmapIcon },
 ]
 
 export function NavLinks({

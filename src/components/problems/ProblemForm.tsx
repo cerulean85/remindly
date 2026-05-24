@@ -1,9 +1,10 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { Button } from "@/components/ui/Button"
 import { MarkdownPreview } from "@/components/notes/MarkdownPreview"
-import { TagInput } from "./TagInput"
+import { TagInput, type KeywordSuggestion } from "./TagInput"
 import { uploadImage } from "@/lib/uploadImage"
 import { cn } from "@/lib/utils"
 import { useDraftAutosave } from "@/hooks/useDraftAutosave"
@@ -83,6 +84,12 @@ export function ProblemForm({
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const { data: keywordSuggestions = [] } = useQuery<KeywordSuggestion[]>({
+    queryKey: ["keywords"],
+    queryFn: () => fetch("/api/keywords").then((r) => r.json()),
+    staleTime: 60_000,
+  })
 
   const currentState: ProblemFormState = { question, answer, keywords, categoryId, images }
 
@@ -252,6 +259,7 @@ export function ProblemForm({
           value={keywords}
           onChange={setKeywords}
           placeholder={t("problems.keywordsPlaceholder")}
+          suggestions={keywordSuggestions}
         />
       </div>
 

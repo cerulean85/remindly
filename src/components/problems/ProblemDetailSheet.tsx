@@ -7,6 +7,7 @@ import { CategoryBadge } from "@/components/categories/CategoryBadge"
 import { MarkdownPreview } from "@/components/notes/MarkdownPreview"
 import { LearningProgressBar } from "@/components/problems/LearningProgressBar"
 import { ImageGallery } from "@/components/ui/ImageGallery"
+import { RelatedMindmap } from "@/components/mindmap/RelatedMindmap"
 import { LEARNING_STAGE_KEYS, type LearningStageKey, type Problem } from "@/types"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
@@ -17,6 +18,7 @@ interface ProblemDetailSheetProps {
   onClose: () => void
   onEdit?: (p: Problem) => void
   onDelete?: (p: Problem) => void
+  onSwitchProblem?: (problemId: string) => void
 }
 
 type StageState = Record<LearningStageKey, boolean>
@@ -31,7 +33,7 @@ function readStages(problem: Problem | null): StageState {
   }
 }
 
-export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete }: ProblemDetailSheetProps) {
+export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete, onSwitchProblem }: ProblemDetailSheetProps) {
   const { t } = useTranslation()
   const open = !!problem
   const queryClient = useQueryClient()
@@ -194,6 +196,14 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete }: Probl
                   ))}
                 </div>
               </div>
+            )}
+
+            {/* Related mindmap */}
+            {problem && (
+              <RelatedMindmap
+                problemId={problem.id}
+                onSwitchProblem={onSwitchProblem}
+              />
             )}
 
             {/* Learning process — toggleable checklist */}
