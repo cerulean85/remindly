@@ -51,7 +51,7 @@ export function NavLinks({
             collapsed ? "justify-center" : "gap-3",
             pathname.startsWith(href)
               ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
-              : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-neutral-800"
+              : "text-text-secondary hover:bg-black/[0.04] hover:text-text-primary dark:hover:bg-white/[0.06]"
           )}
         >
           <Icon className="h-5 w-5 shrink-0" />

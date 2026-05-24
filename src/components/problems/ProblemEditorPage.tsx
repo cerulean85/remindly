@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
 import { Button } from "@/components/ui/Button"
 import { ProblemForm } from "@/components/problems/ProblemForm"
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard"
+import { useEscapeKey } from "@/hooks/useEscapeKey"
 import type { Category, Problem } from "@/types"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
@@ -55,17 +56,7 @@ export function ProblemEditorPage({
   }
 
   // Make Esc trigger guarded back so users can dismiss intuitively.
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault()
-        handleBack()
-      }
-    }
-    window.addEventListener("keydown", handler)
-    return () => window.removeEventListener("keydown", handler)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formState.isDirty])
+  useEscapeKey(handleBack)
 
   const canSubmit = formState.isValid && !formState.isUploading && !isSubmitting
 
@@ -76,13 +67,13 @@ export function ProblemEditorPage({
           type="button"
           onClick={handleBack}
           aria-label={t("problems.back")}
-          className="h-9 w-9 shrink-0 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors flex items-center justify-center"
+          className="h-9 w-9 shrink-0 rounded-full text-text-secondary hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.06] transition-colors flex items-center justify-center"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="flex-1 text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
+        <h1 className="flex-1 text-lg font-semibold text-text-primary truncate">
           {title}
         </h1>
         <Button
@@ -101,13 +92,14 @@ export function ProblemEditorPage({
         initial={initial}
         categories={categories}
         autosaveKey={autosaveKey}
+        restoreDraft={mode === "create"}
         onSubmit={onSubmit}
         onCancel={handleBack}
         isLoading={isSubmitting}
         onStateChange={setFormState}
       />
 
-      <p className="mt-3 text-xs text-gray-400" aria-live="polite">
+      <p className="mt-3 text-xs text-text-tertiary" aria-live="polite">
         {formState.isDirty
           ? t("problems.savingDraft")
           : mode === "edit"

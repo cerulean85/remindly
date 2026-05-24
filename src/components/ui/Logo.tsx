@@ -42,7 +42,7 @@ export function LogoFull({ iconSize = 28 }: { iconSize?: number }) {
     <div className="flex items-center gap-2.5">
       <LogoMark size={iconSize} />
       <span
-        className="text-gray-900 dark:text-white tracking-[0.04em]"
+        className="text-text-primary tracking-[0.04em]"
         style={{
           fontSize: iconSize * 0.62,
           fontFamily: "Georgia, 'Times New Roman', serif",

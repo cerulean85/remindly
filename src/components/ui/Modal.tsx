@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useRef } from "react"
 import { cn } from "@/lib/utils"
+import { useEscapeKey } from "@/hooks/useEscapeKey"
 import { Button } from "./Button"
 
 interface ModalProps {
@@ -15,14 +16,7 @@ interface ModalProps {
 
 export function Modal({ open, onClose, title, children, className, headerRight }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose()
-    }
-    if (open) document.addEventListener("keydown", handleKey)
-    return () => document.removeEventListener("keydown", handleKey)
-  }, [open, onClose])
+  useEscapeKey(onClose, open)
 
   if (!open) return null
 
@@ -36,12 +30,12 @@ export function Modal({ open, onClose, title, children, className, headerRight }
     >
       <div
         className={cn(
-          "w-full max-w-md max-h-[90dvh] rounded-2xl bg-white dark:bg-neutral-900 shadow-xl flex flex-col overflow-hidden",
+          "w-full max-w-md max-h-[90dvh] rounded-2xl bg-surface-overlay shadow-popover flex flex-col overflow-hidden",
           className
         )}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-gray-100 dark:border-neutral-800 px-6 py-4 shrink-0">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
+        <div className="flex items-center justify-between gap-3 border-b border-border-subtle px-6 py-4 shrink-0">
+          <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
           {headerRight && (
             <div className="shrink-0 flex items-center gap-2">{headerRight}</div>
           )}
@@ -71,7 +65,7 @@ export function ConfirmModal({
 }) {
   return (
     <Modal open={open} onClose={onClose} title={title}>
-      <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">{description}</p>
+      <p className="mb-6 text-sm text-text-secondary">{description}</p>
       <div className="flex justify-end gap-2">
         <Button variant="secondary" size="sm" onClick={onClose}>취소</Button>
         <Button variant={confirmVariant} size="sm" onClick={onConfirm}>{confirmLabel}</Button>

@@ -18,7 +18,7 @@ export function ColorPicker({ value, onChange }: { value: string; onChange: (col
           onClick={() => onChange(color)}
           className={cn(
             "h-7 w-7 rounded-full transition-transform hover:scale-110",
-            value === color && "ring-2 ring-offset-2 ring-gray-400 dark:ring-gray-500 scale-110"
+            value === color && "ring-2 ring-offset-2 ring-border-strong scale-110"
           )}
           style={{ backgroundColor: color }}
         />

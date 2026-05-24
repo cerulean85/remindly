@@ -74,8 +74,8 @@ export default function MistakesPage() {
         <>
           <div className="mb-4 flex flex-wrap items-center gap-3">
             <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t("mistakes.title")}</h1>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t("mistakes.subtitle")}</p>
+              <h1 className="text-xl font-bold text-text-primary">{t("mistakes.title")}</h1>
+              <p className="mt-1 text-sm text-text-secondary">{t("mistakes.subtitle")}</p>
             </div>
             <Link
               href="/learn"
@@ -87,15 +87,15 @@ export default function MistakesPage() {
 
           <div className="mb-3 flex flex-wrap gap-2">
             <div className="relative min-w-[14rem] flex-1">
-              <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t("mistakes.searchPlaceholder")}
-                className="h-11 w-full rounded-full border border-gray-300 bg-white pl-9 pr-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-100"
+                className="h-11 w-full rounded-full border border-border-default bg-surface-elevated pl-9 pr-3 text-sm text-text-primary outline-none placeholder:text-text-tertiary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
               />
             </div>
-            <div className="flex shrink-0 overflow-hidden rounded-full border border-gray-300 bg-white dark:border-neutral-700 dark:bg-neutral-900">
+            <div className="flex shrink-0 overflow-hidden rounded-full border border-border-default bg-surface-elevated">
               <button
                 type="button"
                 onClick={() => setViewMode("grid")}
@@ -105,7 +105,7 @@ export default function MistakesPage() {
                   "px-3 py-2 text-sm transition-colors",
                   viewMode === "grid"
                     ? "bg-emerald-500 text-white"
-                    : "text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-800"
+                    : "text-text-secondary hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.06]"
                 )}
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -124,7 +124,7 @@ export default function MistakesPage() {
                   "px-3 py-2 text-sm transition-colors",
                   viewMode === "list"
                     ? "bg-emerald-500 text-white"
-                    : "text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-800"
+                    : "text-text-secondary hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.06]"
                 )}
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -144,7 +144,7 @@ export default function MistakesPage() {
                   "shrink-0 rounded-full px-3 py-1 text-xs font-medium border transition-colors",
                   selectedCategoryId === null
                     ? "bg-emerald-500 text-white border-emerald-500"
-                    : "border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800"
+                    : "border-border-default text-text-secondary hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.06]"
                 )}
               >
                 {t("problems.allCategories")}
@@ -157,7 +157,7 @@ export default function MistakesPage() {
                     "shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium border transition-colors",
                     selectedCategoryId === cat.id
                       ? "bg-emerald-500 text-white border-emerald-500"
-                      : "border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800"
+                      : "border-border-default text-text-secondary hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.06]"
                   )}
                 >
                   <span

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Badge } from "@/components/ui/Badge"
 import { CategoryBadge } from "@/components/categories/CategoryBadge"
@@ -10,6 +10,8 @@ import { ImageGallery } from "@/components/ui/ImageGallery"
 import { RelatedMindmap } from "@/components/mindmap/RelatedMindmap"
 import { LEARNING_STAGE_KEYS, type LearningStageKey, type Problem } from "@/types"
 import { cn } from "@/lib/utils"
+import { useEscapeKey } from "@/hooks/useEscapeKey"
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
@@ -37,27 +39,24 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete, onSwitc
   const { t } = useTranslation()
   const open = !!problem
   const queryClient = useQueryClient()
-  const [stages, setStages] = useState<StageState>(() => readStages(problem))
+
+  // hasOpened tracks whether the sheet has been opened at least once so the
+  // close animation can play. Set during render via React's "adjust state on
+  // prop change" pattern — never need to unset.
   const [hasOpened, setHasOpened] = useState(false)
-  useEffect(() => {
-    if (open) setHasOpened(true)
-  }, [open])
+  if (open && !hasOpened) setHasOpened(true)
 
-  useEffect(() => {
+  // Reset stage checkboxes when the active problem changes. Uses React's
+  // "adjust state on prop change" pattern instead of an effect.
+  const [stages, setStages] = useState<StageState>(() => readStages(problem))
+  const [trackedProblemId, setTrackedProblemId] = useState(problem?.id ?? null)
+  if ((problem?.id ?? null) !== trackedProblemId) {
+    setTrackedProblemId(problem?.id ?? null)
     setStages(readStages(problem))
-  }, [problem])
+  }
 
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
-    if (open) document.addEventListener("keydown", handleKey)
-    return () => document.removeEventListener("keydown", handleKey)
-  }, [open, onClose])
-
-  useEffect(() => {
-    if (open) document.body.style.overflow = "hidden"
-    else document.body.style.overflow = ""
-    return () => { document.body.style.overflow = "" }
-  }, [open])
+  useEscapeKey(onClose, open)
+  useBodyScrollLock(open)
 
   const stageMutation = useMutation({
     mutationFn: async ({ id, key, value }: { id: string; key: LearningStageKey; value: boolean }) => {
@@ -108,16 +107,16 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete, onSwitc
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className="mx-auto max-w-3xl rounded-t-3xl bg-white dark:bg-neutral-900 shadow-2xl h-[95dvh] flex flex-col"
+          className="mx-auto max-w-3xl rounded-t-3xl bg-surface-overlay shadow-popover h-[95dvh] flex flex-col"
         >
           {/* Handle bar */}
           <div className="flex justify-center pt-3 pb-1 shrink-0">
-            <div className="h-1 w-10 rounded-full bg-gray-300 dark:bg-neutral-700" />
+            <div className="h-1 w-10 rounded-full bg-border-strong" />
           </div>
 
           {/* Header: title + actions */}
-          <div className="flex items-center justify-between gap-3 border-b border-gray-100 dark:border-neutral-800 px-6 py-3 shrink-0">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <div className="flex items-center justify-between gap-3 border-b border-border-subtle px-6 py-3 shrink-0">
+            <h2 className="text-lg font-semibold text-text-primary">
               {t("problems.detail")}
             </h2>
             <div className="flex items-center gap-2">
@@ -125,7 +124,7 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete, onSwitc
                 <button
                   type="button"
                   onClick={() => { onClose(); setTimeout(() => onEdit(problem), 150) }}
-                  className="rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+                  className="rounded-lg border border-border-default px-3 py-1.5 text-xs font-medium text-text-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
                 >
                   수정
                 </button>
@@ -143,7 +142,7 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete, onSwitc
                 type="button"
                 onClick={onClose}
                 aria-label="Close"
-                className="h-8 w-8 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors flex items-center justify-center text-xl leading-none"
+                className="h-8 w-8 rounded-full text-text-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors flex items-center justify-center text-xl leading-none"
               >
                 ×
               </button>
@@ -161,14 +160,14 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete, onSwitc
 
             {/* Question */}
             <div>
-              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1.5">주제</p>
-              <p className="text-base font-medium text-gray-900 dark:text-gray-100 leading-relaxed whitespace-pre-wrap">
+              <p className="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-1.5">주제</p>
+              <p className="text-base font-medium text-text-primary leading-relaxed whitespace-pre-wrap">
                 {problem?.question}
               </p>
             </div>
 
             {/* Divider */}
-            <div className="border-t border-gray-100 dark:border-neutral-800" />
+            <div className="border-t border-border-subtle" />
 
             {/* Answer */}
             <div>
@@ -176,7 +175,7 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete, onSwitc
               {problem?.answer && (
                 <MarkdownPreview
                   content={problem.answer}
-                  className="text-sm text-gray-800 dark:text-gray-200"
+                  className="text-sm text-text-primary"
                 />
               )}
               {problem && problem.images.length > 0 && (
@@ -189,7 +188,7 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete, onSwitc
             {/* Keywords */}
             {problem && problem.keywords.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">키워드</p>
+                <p className="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-2">키워드</p>
                 <div className="flex flex-wrap gap-1.5">
                   {problem.keywords.map((kw) => (
                     <Badge key={kw}>{kw}</Badge>
@@ -210,7 +209,7 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete, onSwitc
             {problem && (
               <div>
                 <div className="mb-2 flex items-center justify-between gap-3">
-                  <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+                  <p className="text-xs font-semibold text-text-tertiary uppercase tracking-wide">
                     {t("problems.stage.sectionTitle")}
                   </p>
                   <span className="text-[11px] font-semibold tabular-nums text-emerald-600 dark:text-emerald-300">
@@ -233,18 +232,18 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete, onSwitc
                             "flex items-center gap-3 rounded-lg border px-3 py-2.5 cursor-pointer select-none transition-colors",
                             checked
                               ? "border-emerald-300 dark:border-emerald-700/70 bg-emerald-50 dark:bg-emerald-500/10"
-                              : "border-gray-200 dark:border-neutral-800 bg-gray-50/60 dark:bg-neutral-900/40 hover:bg-gray-100 dark:hover:bg-neutral-800/60",
+                              : "border-border-default bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black/[0.05] dark:hover:bg-white/[0.05]",
                           )}
                         >
                           <input
                             type="checkbox"
                             checked={checked}
                             onChange={() => toggleStage(key)}
-                            className="h-4 w-4 shrink-0 rounded border-gray-300 dark:border-neutral-600 text-emerald-500 focus:ring-emerald-400"
+                            className="h-4 w-4 shrink-0 rounded border-border-default text-emerald-500 focus:ring-emerald-400"
                           />
                           <span className={cn(
                             "text-sm font-medium",
-                            checked ? "text-emerald-700 dark:text-emerald-200" : "text-gray-700 dark:text-gray-200",
+                            checked ? "text-emerald-700 dark:text-emerald-200" : "text-text-secondary",
                           )}>
                             {t(`problems.stage.${key}`)}
                           </span>

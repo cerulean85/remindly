@@ -41,13 +41,13 @@ export function LearningProgressBar({
               segmentClass,
               filled[i]
                 ? "bg-emerald-500 dark:bg-emerald-400"
-                : "bg-gray-200 dark:bg-neutral-700",
+                : "bg-black/[0.06] dark:bg-white/[0.08]",
             )}
           />
         ))}
       </div>
       {showCount && (
-        <span className={cn("shrink-0 tabular-nums text-gray-500 dark:text-gray-400", textClass)}>
+        <span className={cn("shrink-0 tabular-nums text-text-secondary", textClass)}>
           {count}/{total}
         </span>
       )}

@@ -6,14 +6,14 @@ import { LogoMark } from "@/components/ui/Logo"
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-black p-4">
-      <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-neutral-900 shadow-xl p-8 text-center">
+    <div className="flex min-h-screen items-center justify-center bg-surface-base p-4">
+      <div className="w-full max-w-sm rounded-3xl bg-surface-elevated shadow-xl p-8 text-center">
         <div className="mb-6">
           <div className="flex justify-center mb-4">
             <LogoMark size={64} />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Remindly</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <h1 className="text-2xl font-bold text-text-primary mb-1">Remindly</h1>
+          <p className="text-sm text-text-secondary">
             잊고 싶은 오답까지 기록하고,<br />확실하게 각인하는 학습 파트너
           </p>
         </div>

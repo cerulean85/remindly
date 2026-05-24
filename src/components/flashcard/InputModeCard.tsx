@@ -41,18 +41,18 @@ export function InputModeCard({ problem, onCorrect, onWrong, onSkip }: InputMode
   return (
     <div className="flex flex-col gap-4">
       {/* Question */}
-      <div className="rounded-2xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-sm p-6">
+      <div className="rounded-2xl bg-surface-elevated border border-border-default shadow-sm p-6">
         <div className="flex justify-between items-start mb-4">
           <CategoryBadge category={problem.category} />
         </div>
-        <p className="text-lg font-medium text-gray-900 dark:text-gray-100 text-center">
+        <p className="text-lg font-medium text-text-primary text-center">
           {problem.question}
         </p>
       </div>
 
       {/* Answer input */}
-      <div className="rounded-2xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-sm p-4 flex flex-col gap-3">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+      <div className="rounded-2xl bg-surface-elevated border border-border-default shadow-sm p-4 flex flex-col gap-3">
+        <label className="text-sm font-medium text-text-secondary">
           {t("learn.yourAnswer")}
         </label>
         <textarea
@@ -62,7 +62,7 @@ export function InputModeCard({ problem, onCorrect, onWrong, onSkip }: InputMode
           disabled={checked}
           rows={3}
           placeholder={t("learn.yourAnswerPlaceholder")}
-          className="w-full rounded-xl border border-gray-300 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400 resize-none disabled:opacity-60"
+          className="w-full rounded-xl border border-border-default bg-surface-base px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400 resize-none disabled:opacity-60"
         />
 
         {checked && (

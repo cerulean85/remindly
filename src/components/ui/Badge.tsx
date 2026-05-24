@@ -12,7 +12,7 @@ export function Badge({ children, color, className, onRemove }: BadgeProps) {
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium",
-        !color && "bg-gray-100 text-gray-700 dark:bg-neutral-800 dark:text-gray-300",
+        !color && "bg-black/[0.05] text-text-secondary dark:bg-white/[0.06]",
         className
       )}
       style={color ? { backgroundColor: color + "22", color } : undefined}

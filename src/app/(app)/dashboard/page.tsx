@@ -47,7 +47,7 @@ const LEVEL_STYLE: Record<Level, { bg: string; text: string; dot: string }> = {
   },
   blurry: {
     bg: "bg-gray-50 dark:bg-gray-500/10 hover:bg-gray-100 dark:hover:bg-gray-500/20 border-gray-200 dark:border-gray-500/30",
-    text: "text-gray-700 dark:text-gray-300",
+    text: "text-text-secondary",
     dot: "bg-gray-400",
   },
   empty: {
@@ -109,7 +109,7 @@ function TrendChart({ buckets }: { buckets: TrendBucket[] }) {
 function TrendXAxis({ buckets, period }: { buckets: TrendBucket[]; period: Period }) {
   const stride = period === "daily" ? 2 : 1
   return (
-    <div className="mt-1 flex justify-between text-[10px] text-gray-400">
+    <div className="mt-1 flex justify-between text-[10px] text-text-tertiary">
       {buckets.map((b, i) => (
         <span key={b.label} className={cn("flex-1 text-center", i % stride !== 0 && "invisible")}>
           {formatBucketLabel(b.label, period)}
@@ -145,7 +145,7 @@ export default function DashboardPage() {
   if (dashLoading || !dash) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-6">
-        <div className="text-sm text-gray-400">{t("common.loading")}</div>
+        <div className="text-sm text-text-tertiary">{t("common.loading")}</div>
       </div>
     )
   }
@@ -154,25 +154,25 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 flex flex-col gap-5">
-      <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t("dashboard.title")}</h1>
+      <h1 className="text-xl font-bold text-text-primary">{t("dashboard.title")}</h1>
 
-      <div className="rounded-2xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 p-5">
-        <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">
+      <div className="rounded-2xl bg-surface-elevated border border-border-default shadow-card p-5">
+        <div className="text-xs uppercase tracking-wide text-text-tertiary mb-2">
           {t("dashboard.overallRate")}
         </div>
         <div className="flex items-baseline gap-3">
           <span className="text-4xl font-bold text-amber-500">{summary.overallRate}%</span>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-text-secondary">
             {summary.vividCount} / {summary.totalProblems} {t("dashboard.subjects")}
           </span>
         </div>
-        <div className="mt-3 h-2 rounded-full bg-gray-100 dark:bg-neutral-800 overflow-hidden">
+        <div className="mt-3 h-2 rounded-full bg-black/[0.06]/[0.08] overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-amber-300 to-amber-500"
             style={{ width: `${summary.overallRate}%` }}
           />
         </div>
-        <p className="mt-2 text-xs text-gray-400">
+        <p className="mt-2 text-xs text-text-tertiary">
           {t("dashboard.threshold", { value: settings.retrievalThreshold })}
         </p>
       </div>
@@ -202,12 +202,12 @@ export default function DashboardPage() {
         })}
       </div>
 
-      <div className="rounded-2xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 p-5">
+      <div className="rounded-2xl bg-surface-elevated border border-border-default shadow-card p-5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+          <h2 className="text-sm font-semibold text-text-primary">
             {t("dashboard.trend")}
           </h2>
-          <div className="flex rounded-xl border border-gray-200 dark:border-neutral-700 overflow-hidden text-xs">
+          <div className="flex rounded-xl border border-border-default overflow-hidden text-xs">
             {(["daily", "weekly", "monthly"] as Period[]).map((p) => (
               <button
                 key={p}
@@ -216,7 +216,7 @@ export default function DashboardPage() {
                   "px-3 py-1 transition-colors",
                   period === p
                     ? "bg-emerald-500 text-white"
-                    : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800"
+                    : "text-text-secondary hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.06]"
                 )}
               >
                 {t(`dashboard.${p}`)}
@@ -228,10 +228,10 @@ export default function DashboardPage() {
         <button
           type="button"
           onClick={() => router.push("/retrieval")}
-          className="block w-full text-left rounded-xl p-2 -mx-2 hover:bg-gray-50 dark:hover:bg-neutral-800/60 transition-colors"
+          className="block w-full text-left rounded-xl p-2 -mx-2 hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.04] transition-colors"
         >
           {trendLoading || !trend ? (
-            <div className="h-40 flex items-center justify-center text-sm text-gray-400">
+            <div className="h-40 flex items-center justify-center text-sm text-text-tertiary">
               {t("common.loading")}
             </div>
           ) : (
@@ -242,7 +242,7 @@ export default function DashboardPage() {
           )}
         </button>
 
-        <div className="mt-3 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+        <div className="mt-3 flex items-center gap-3 text-xs text-text-secondary">
           <span className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-sm bg-amber-400" /> Vivid
           </span>
@@ -256,9 +256,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 p-5">
+      <div className="rounded-2xl bg-surface-elevated border border-border-default shadow-card p-5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+          <h2 className="text-sm font-semibold text-text-primary">
             {t("dashboard.todayPriority")}
           </h2>
           <Link href="/learn" className="text-emerald-500 text-xs hover:underline">
@@ -266,7 +266,7 @@ export default function DashboardPage() {
           </Link>
         </div>
         {priority.length === 0 ? (
-          <p className="text-sm text-gray-500 py-3">{t("dashboard.noPriority")}</p>
+          <p className="text-sm text-text-secondary py-3">{t("dashboard.noPriority")}</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {priority.map((p, i) => (
@@ -274,16 +274,16 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => setDetailId(p.id)}
-                  className="flex w-full items-center gap-3 rounded-xl border border-gray-100 dark:border-neutral-800 px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-neutral-800/60 transition-colors"
+                  className="flex w-full items-center gap-3 rounded-xl border border-border-subtle px-3 py-2 text-left hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.04] transition-colors"
                 >
-                  <span className="text-xs font-mono text-gray-400 w-5">{i + 1}</span>
+                  <span className="text-xs font-mono text-text-tertiary w-5">{i + 1}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="truncate text-sm text-gray-900 dark:text-gray-100">{p.question}</p>
+                    <p className="truncate text-sm text-text-primary">{p.question}</p>
                     {p.category && (
                       <p className="text-xs" style={{ color: p.category.color }}>{p.category.name}</p>
                     )}
                   </div>
-                  <span className="text-xs text-gray-400 shrink-0">
+                  <span className="text-xs text-text-tertiary shrink-0">
                     {p.retrievalRate === null ? "—" : `${p.retrievalRate}%`}
                   </span>
                 </button>
@@ -306,20 +306,20 @@ export default function DashboardPage() {
         {modalLevel && (
           <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto">
             {byLevel[modalLevel].length === 0 ? (
-              <p className="text-sm text-gray-500">{t("dashboard.noSubjects")}</p>
+              <p className="text-sm text-text-secondary">{t("dashboard.noSubjects")}</p>
             ) : (
               byLevel[modalLevel].map((p) => (
                 <div
                   key={p.id}
-                  className="flex items-center gap-3 rounded-xl border border-gray-200 dark:border-neutral-800 px-3 py-2"
+                  className="flex items-center gap-3 rounded-xl border border-border-default px-3 py-2"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="truncate text-sm text-gray-900 dark:text-gray-100">{p.question}</p>
+                    <p className="truncate text-sm text-text-primary">{p.question}</p>
                     {p.category && (
                       <p className="text-xs" style={{ color: p.category.color }}>{p.category.name}</p>
                     )}
                   </div>
-                  <span className="text-xs text-gray-400 shrink-0">
+                  <span className="text-xs text-text-tertiary shrink-0">
                     {p.retrievalRate === null ? "—" : `${p.retrievalRate}%`}
                   </span>
                 </div>

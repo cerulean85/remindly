@@ -111,22 +111,22 @@ export default function RetrievalPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
-      <h1 className="mb-4 text-xl font-bold text-gray-900 dark:text-gray-100">{t("retrieval.title")}</h1>
+      <h1 className="mb-4 text-xl font-bold text-text-primary">{t("retrieval.title")}</h1>
 
-      <div className="rounded-2xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 p-4 sm:p-5">
+      <div className="rounded-2xl bg-surface-elevated border border-border-default p-4 sm:p-5">
         <div className="mb-4 flex items-center justify-between">
           <button
             onClick={goPrev}
-            className="rounded-lg px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800"
+            className="rounded-lg px-3 py-1.5 text-sm text-text-secondary hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.06]"
           >
             ←
           </button>
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+          <h2 className="text-base font-semibold text-text-primary">
             {year}.{String(month).padStart(2, "0")}
           </h2>
           <button
             onClick={goNext}
-            className="rounded-lg px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800"
+            className="rounded-lg px-3 py-1.5 text-sm text-text-secondary hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.06]"
           >
             →
           </button>
@@ -134,7 +134,7 @@ export default function RetrievalPage() {
 
         <div className="grid grid-cols-7 gap-1 mb-2">
           {KO_WEEKDAYS.map((w) => (
-            <div key={w} className="text-center text-xs font-medium text-gray-400 py-1">{w}</div>
+            <div key={w} className="text-center text-xs font-medium text-text-tertiary py-1">{w}</div>
           ))}
         </div>
 
@@ -152,7 +152,7 @@ export default function RetrievalPage() {
                 onClick={() => dayData && setSelectedDay(dayData)}
                 disabled={!dayData}
                 className={cn(
-                  "aspect-square rounded-lg flex flex-col items-center justify-between p-1.5 text-sm transition-all text-gray-700 dark:text-gray-300",
+                  "aspect-square rounded-lg flex flex-col items-center justify-between p-1.5 text-sm transition-all text-text-secondary",
                   dayData ? "hover:ring-2 hover:ring-emerald-300 cursor-pointer" : "cursor-default",
                   isToday && "ring-2 ring-emerald-500"
                 )}
@@ -164,7 +164,7 @@ export default function RetrievalPage() {
                       <span className="text-amber-600 dark:text-amber-400">V {dayData.vividCount}</span>
                     )}
                     {dayData.blurryCount > 0 && (
-                      <span className="text-gray-500 dark:text-gray-400">B {dayData.blurryCount}</span>
+                      <span className="text-text-secondary">B {dayData.blurryCount}</span>
                     )}
                     {dayData.emptyCount > 0 && (
                       <span className="text-red-500 dark:text-red-400">E {dayData.emptyCount}</span>
@@ -176,14 +176,14 @@ export default function RetrievalPage() {
           })}
         </div>
 
-        <div className="mt-4 flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+        <div className="mt-4 flex items-center gap-4 text-xs text-text-secondary">
           <span className="text-amber-600 dark:text-amber-400">V = Vivid</span>
-          <span className="text-gray-500 dark:text-gray-400">B = Blurry</span>
+          <span className="text-text-secondary">B = Blurry</span>
           <span className="text-red-500 dark:text-red-400">E = Empty</span>
         </div>
 
         {isLoading && (
-          <div className="mt-4 text-center text-sm text-gray-400">{t("common.loading")}</div>
+          <div className="mt-4 text-center text-sm text-text-tertiary">{t("common.loading")}</div>
         )}
       </div>
 
@@ -194,29 +194,29 @@ export default function RetrievalPage() {
       >
         {selectedDay && (
           <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto">
-            <div className="flex gap-3 text-xs text-gray-500 dark:text-gray-400 mb-2">
+            <div className="flex gap-3 text-xs text-text-secondary mb-2">
               <span className="text-amber-600 dark:text-amber-400">Vivid {selectedDay.vividCount}</span>
-              <span className="text-gray-500">Blurry {selectedDay.blurryCount}</span>
+              <span className="text-text-secondary">Blurry {selectedDay.blurryCount}</span>
               <span className="text-red-500">Empty {selectedDay.emptyCount}</span>
             </div>
             {selectedDay.items.length === 0 ? (
-              <p className="text-sm text-gray-500">{t("retrieval.noEntries")}</p>
+              <p className="text-sm text-text-secondary">{t("retrieval.noEntries")}</p>
             ) : (
               selectedDay.items.map((item, idx) => (
                 <button
                   type="button"
                   key={`${item.problemId}-${idx}`}
                   onClick={() => setDetailId(item.problemId)}
-                  className="flex w-full items-center gap-3 rounded-xl border border-gray-200 dark:border-neutral-800 px-3 py-2 text-left transition-colors hover:bg-gray-50 dark:hover:bg-neutral-800/60"
+                  className="flex w-full items-center gap-3 rounded-xl border border-border-default px-3 py-2 text-left transition-colors hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.04]"
                 >
                   {ratingDot(item.rating)}
                   <div className="flex-1 min-w-0">
-                    <p className="truncate text-sm text-gray-900 dark:text-gray-100">{item.question}</p>
+                    <p className="truncate text-sm text-text-primary">{item.question}</p>
                     {item.category && (
                       <p className="text-xs" style={{ color: item.category.color }}>{item.category.name}</p>
                     )}
                   </div>
-                  <span className="text-xs text-gray-400 shrink-0">
+                  <span className="text-xs text-text-tertiary shrink-0">
                     {new Date(item.studiedAt).toLocaleTimeString("ko", { hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </button>

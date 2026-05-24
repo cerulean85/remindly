@@ -48,7 +48,7 @@ export function ImageGallery({ images, size = "md" }: ImageGalleryProps) {
               e.stopPropagation()
               setActiveIndex(i)
             }}
-            className={`${itemCls} rounded-lg overflow-hidden border border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900 hover:opacity-80 transition-opacity`}
+            className={`${itemCls} rounded-lg overflow-hidden border border-border-default bg-surface-base hover:opacity-80 transition-opacity`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={url} alt="" className={imgCls} />
@@ -63,7 +63,7 @@ export function ImageGallery({ images, size = "md" }: ImageGalleryProps) {
         >
           <button
             type="button"
-            className="absolute top-4 right-4 h-10 w-10 rounded-full bg-white/10 text-white text-xl hover:bg-white/20"
+            className="absolute top-4 right-4 h-10 w-10 rounded-full bg-surface-elevated/10 text-white text-xl hover:bg-surface-elevated/20"
             onClick={(e) => { e.stopPropagation(); setActiveIndex(null) }}
             aria-label="Close"
           >
@@ -73,7 +73,7 @@ export function ImageGallery({ images, size = "md" }: ImageGalleryProps) {
             <>
               <button
                 type="button"
-                className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-white/10 text-white text-2xl hover:bg-white/20"
+                className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-surface-elevated/10 text-white text-2xl hover:bg-surface-elevated/20"
                 onClick={(e) => { e.stopPropagation(); setActiveIndex((i) => (i === null ? null : (i - 1 + images.length) % images.length)) }}
                 aria-label="Previous"
               >
@@ -81,7 +81,7 @@ export function ImageGallery({ images, size = "md" }: ImageGalleryProps) {
               </button>
               <button
                 type="button"
-                className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-white/10 text-white text-2xl hover:bg-white/20"
+                className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-surface-elevated/10 text-white text-2xl hover:bg-surface-elevated/20"
                 onClick={(e) => { e.stopPropagation(); setActiveIndex((i) => (i === null ? null : (i + 1) % images.length)) }}
                 aria-label="Next"
               >
@@ -97,7 +97,7 @@ export function ImageGallery({ images, size = "md" }: ImageGalleryProps) {
             onClick={(e) => e.stopPropagation()}
           />
           {images.length > 1 && (
-            <span className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-3 py-1 text-xs text-white">
+            <span className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-surface-elevated/10 px-3 py-1 text-xs text-white">
               {activeIndex! + 1} / {images.length}
             </span>
           )}

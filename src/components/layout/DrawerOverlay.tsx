@@ -34,15 +34,15 @@ export function DrawerOverlay() {
       )}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-white dark:bg-black shadow-xl transition-transform duration-300 md:hidden",
+          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-surface-elevated shadow-popover transition-transform duration-300 md:hidden",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex h-14 items-center justify-between px-4 border-b border-gray-200 dark:border-neutral-800">
+        <div className="flex h-14 items-center justify-between px-4 border-b border-border-default">
           <LogoFull iconSize={26} />
           <button
             onClick={close}
-            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+            className="text-text-tertiary hover:text-text-primary"
             aria-label={t("common.close")}
           >
             <XIcon className="h-5 w-5" />
@@ -66,17 +66,17 @@ export function DrawerOverlay() {
                 </div>
               )}
               <div className="min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                <p className="text-sm font-medium text-text-primary truncate">
                   {session.user.name}
                 </p>
-                <p className="text-xs text-gray-500 truncate">{session.user.email}</p>
+                <p className="text-xs text-text-tertiary truncate">{session.user.email}</p>
               </div>
             </div>
           )}
           <NavLinks onNavigate={close} />
         </div>
 
-        <div className="p-4 border-t border-gray-200 dark:border-neutral-800">
+        <div className="p-4 border-t border-border-default">
           <Link
             href="/settings"
             onClick={close}
@@ -84,7 +84,7 @@ export function DrawerOverlay() {
               "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
               pathname.startsWith("/settings")
                 ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
-                : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-neutral-800"
+                : "text-text-secondary hover:bg-black/[0.04] hover:text-text-primary dark:hover:bg-white/[0.06]"
             )}
           >
             <SettingsIcon className="h-5 w-5" />

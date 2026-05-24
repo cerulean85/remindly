@@ -48,14 +48,14 @@ export default function EditProblemPage({ params }: PageProps) {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-6 text-sm text-gray-400">
+      <div className="mx-auto max-w-3xl px-4 py-6 text-sm text-text-tertiary">
         {t("common.loading")}
       </div>
     )
   }
   if (isError || !problem) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-6 text-sm text-gray-400">
+      <div className="mx-auto max-w-3xl px-4 py-6 text-sm text-text-tertiary">
         {t("common.error")}
       </div>
     )

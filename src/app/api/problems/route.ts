@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { retrievalStats } from "@/lib/stats"
 import { progressCount } from "@/lib/learningStages"
+import { mirrorKeywords } from "@/lib/mirrorKeywords"
 import { withAuth } from "@/lib/withAuth"
 import type { Prisma } from "@prisma/client"
 
@@ -193,16 +194,32 @@ export const POST = withAuth(async (req, { userId }) => {
     return NextResponse.json({ error: "question and answer are required" }, { status: 400 })
   }
 
-  const problem = await prisma.problem.create({
-    data: {
-      question: question.trim(),
-      answer: answer.trim(),
-      keywords: Array.isArray(keywords) ? keywords : [],
-      images: Array.isArray(images) ? images.filter((u: unknown) => typeof u === "string") : [],
-      categoryId: categoryId || null,
-      userId,
-    },
-    include: { category: true },
+  const problem = await prisma.$transaction(async (tx) => {
+    const created = await tx.problem.create({
+      data: {
+        question: question.trim(),
+        answer: answer.trim(),
+        keywords: Array.isArray(keywords) ? keywords : [],
+        images: Array.isArray(images) ? images.filter((u: unknown) => typeof u === "string") : [],
+        categoryId: categoryId || null,
+        userId,
+      },
+      include: { category: true },
+    })
+
+    if (created.keywords.length > 0) {
+      await mirrorKeywords({
+        sourceProblemId: created.id,
+        sourceTitle: created.question,
+        userId,
+        added: created.keywords,
+        removed: [],
+        tx,
+      })
+    }
+
+    return created
   })
+
   return NextResponse.json(problem, { status: 201 })
 })

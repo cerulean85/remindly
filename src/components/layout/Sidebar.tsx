@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
@@ -9,6 +8,7 @@ import { NavLinks } from "./NavLinks"
 import { LogoFull, LogoMark } from "@/components/ui/Logo"
 import { SettingsIcon } from "@/components/ui/Icons"
 import { cn } from "@/lib/utils"
+import { useLocalStorageState, booleanSerializer } from "@/hooks/useLocalStorageState"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
@@ -18,40 +18,25 @@ export function Sidebar({ className }: { className?: string }) {
   const { data: session } = useSession()
   const pathname = usePathname()
   const { t } = useTranslation()
-  const [collapsed, setCollapsed] = useState(false)
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    const stored = window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY)
-    if (stored !== "true") return
-
-    let active = true
-    queueMicrotask(() => {
-      if (active) setCollapsed(true)
-    })
-    return () => {
-      active = false
-    }
-  }, [])
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(collapsed))
-  }, [collapsed])
+  const [collapsed, setCollapsed] = useLocalStorageState(
+    SIDEBAR_COLLAPSED_KEY,
+    false,
+    booleanSerializer,
+  )
 
   const toggleLabel = collapsed ? t("nav.expand") : t("nav.collapse")
 
   return (
     <aside
       className={cn(
-        "flex h-full flex-col border-r border-gray-200 bg-white transition-[width] duration-200 dark:border-neutral-800 dark:bg-black",
+        "flex h-full flex-col border-r border-border-default bg-surface-elevated transition-[width] duration-200",
         collapsed ? "w-20" : "w-64",
         className
       )}
     >
       <div
         className={cn(
-          "flex h-14 items-center border-b border-gray-200 dark:border-neutral-800",
+          "flex h-14 items-center border-b border-border-default",
           collapsed ? "justify-center px-3" : "justify-between px-4"
         )}
       >
@@ -59,7 +44,7 @@ export function Sidebar({ className }: { className?: string }) {
         <button
           type="button"
           onClick={() => setCollapsed((prev) => !prev)}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-neutral-800 dark:hover:text-gray-100"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-black/[0.04] hover:text-text-primary dark:hover:bg-white/[0.06]"
           aria-label={toggleLabel}
           title={toggleLabel}
         >
@@ -99,10 +84,10 @@ export function Sidebar({ className }: { className?: string }) {
               </div>
             )}
             <div className={cn("min-w-0", collapsed && "sr-only")}>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+              <p className="text-sm font-medium text-text-primary truncate">
                 {session.user.name}
               </p>
-              <p className="text-xs text-gray-500 truncate">{session.user.email}</p>
+              <p className="text-xs text-text-tertiary truncate">{session.user.email}</p>
             </div>
           </div>
         )}
@@ -110,7 +95,7 @@ export function Sidebar({ className }: { className?: string }) {
         <NavLinks collapsed={collapsed} />
       </div>
 
-      <div className={cn("border-t border-gray-200 dark:border-neutral-800", collapsed ? "p-3" : "p-4")}>
+      <div className={cn("border-t border-border-default", collapsed ? "p-3" : "p-4")}>
         <Link
           href="/settings"
           title={collapsed ? t("nav.settings") : undefined}
@@ -119,7 +104,7 @@ export function Sidebar({ className }: { className?: string }) {
             collapsed ? "justify-center" : "gap-3",
             pathname.startsWith("/settings")
               ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
-              : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-neutral-800"
+              : "text-text-secondary hover:bg-black/[0.04] hover:text-text-primary dark:hover:bg-white/[0.06]"
           )}
         >
           <SettingsIcon className="h-5 w-5 shrink-0" />

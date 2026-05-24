@@ -70,6 +70,7 @@
     "keywords": "Related Keywords",
     "keywordsPlaceholder": "Type keyword and press Enter or comma",
     "frequentlyUsed": "Frequently used",
+    "suggestionFromProblem": "Existing problem",
     "category": "Category",
     "noCategory": "No Category",
     "save": "Save",

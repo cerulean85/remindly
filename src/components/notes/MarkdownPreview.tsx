@@ -59,7 +59,7 @@ function normalizeMarkdown(content: string) {
 
 export function MarkdownPreview({ content, className }: { content: string; className?: string }) {
   return (
-    <div className={cn("markdown text-gray-900 dark:text-gray-100", className)}>
+    <div className={cn("markdown text-text-primary", className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex]}

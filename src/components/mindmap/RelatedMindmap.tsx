@@ -34,15 +34,15 @@ export function RelatedMindmap({ problemId, onSwitchProblem }: RelatedMindmapPro
 
   return (
     <div>
-      <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2">
+      <p className="text-xs font-semibold text-text-tertiary uppercase tracking-wide mb-2">
         {t("mindmap.related")}
       </p>
       <div
-        className="relative h-60 w-full overflow-hidden rounded-xl border border-gray-200 dark:border-neutral-800"
+        className="relative h-60 w-full overflow-hidden rounded-xl border border-border-default"
         style={{ background: resolvedTheme === "dark" ? BG_DARK : BG_LIGHT }}
       >
         {isLoading && (
-          <p className="absolute inset-0 flex items-center justify-center text-xs text-gray-400">
+          <p className="absolute inset-0 flex items-center justify-center text-xs text-text-tertiary">
             {t("common.loading")}
           </p>
         )}
@@ -52,7 +52,7 @@ export function RelatedMindmap({ problemId, onSwitchProblem }: RelatedMindmapPro
           </p>
         )}
         {data && !hasNeighbors && (
-          <p className="absolute inset-0 flex items-center justify-center px-6 text-center text-xs text-gray-500 dark:text-gray-400">
+          <p className="absolute inset-0 flex items-center justify-center px-6 text-center text-xs text-text-secondary">
             {t("mindmap.noRelated")}
           </p>
         )}

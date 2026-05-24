@@ -90,21 +90,21 @@ export function FlashCard({
           style={{ transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
         >
           {/* Front */}
-          <div className="[backface-visibility:hidden] [grid-area:1/1] flex min-h-0 flex-col rounded-2xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 shadow-sm p-6">
+          <div className="[backface-visibility:hidden] [grid-area:1/1] flex min-h-0 flex-col rounded-2xl bg-surface-elevated border border-border-default shadow-sm p-6">
             <div className="flex justify-between items-start mb-4">
               <CategoryBadge category={problem.category} />
               {showTimer ? (
                 <span className={cn(
                   "text-xs font-semibold tabular-nums",
-                  isUrgent ? "text-red-500" : "text-gray-500"
+                  isUrgent ? "text-red-500" : "text-text-secondary"
                 )}>
                   ⏱ {timeLeft}s
                 </span>
               ) : (
-                <span className="text-xs text-gray-400">탭하여 설명 보기</span>
+                <span className="text-xs text-text-tertiary">탭하여 설명 보기</span>
               )}
             </div>
-            <p className="text-lg font-medium text-gray-900 dark:text-gray-100 text-center flex-1 flex items-center justify-center whitespace-pre-wrap">
+            <p className="text-lg font-medium text-text-primary text-center flex-1 flex items-center justify-center whitespace-pre-wrap">
               {problem.question}
             </p>
             <CardStats
@@ -181,7 +181,7 @@ function CardStats({
 }) {
   const { t } = useTranslation()
   return (
-    <div className="mt-5 shrink-0 border-t border-gray-200 pt-4 dark:border-neutral-800">
+    <div className="mt-5 shrink-0 border-t border-border-default pt-4">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <Stat label={t("learn.retrievalRate")} value={retrievalRate === null ? "-" : `${retrievalRate}%`} />
         <Stat label={t("learn.wrongCount")} value={wrongCount} />
@@ -189,10 +189,10 @@ function CardStats({
         <button
           type="button"
           onClick={onOpenRecords}
-          className="rounded-lg border border-gray-200 px-2 py-2 text-left transition-colors hover:bg-gray-50 dark:border-neutral-800 dark:hover:bg-neutral-900/60"
+          className="rounded-lg border border-border-default px-2 py-2 text-left transition-colors hover:bg-surface-base"
         >
-          <span className="block text-[11px] text-gray-500">{t("learn.mistakeRecordCount")}</span>
-          <strong className="mt-0.5 block text-sm text-gray-900 dark:text-gray-100">{recordCount}</strong>
+          <span className="block text-[11px] text-text-secondary">{t("learn.mistakeRecordCount")}</span>
+          <strong className="mt-0.5 block text-sm text-text-primary">{recordCount}</strong>
         </button>
       </div>
       <ButtonRow onCreateRecord={onCreateRecord} />
@@ -202,9 +202,9 @@ function CardStats({
 
 function Stat({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="rounded-lg border border-gray-200 px-2 py-2 dark:border-neutral-800">
-      <span className="block text-[11px] text-gray-500">{label}</span>
-      <strong className="mt-0.5 block text-sm text-gray-900 dark:text-gray-100">{value}</strong>
+    <div className="rounded-lg border border-border-default px-2 py-2">
+      <span className="block text-[11px] text-text-secondary">{label}</span>
+      <strong className="mt-0.5 block text-sm text-text-primary">{value}</strong>
     </div>
   )
 }

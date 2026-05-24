@@ -122,7 +122,7 @@ export function MistakeRecordModal({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder={t("learn.recordPlaceholder")}
-              className="min-h-32 w-full resize-y rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 dark:border-neutral-700 dark:bg-neutral-950"
+              className="min-h-32 w-full resize-y rounded-xl border border-border-default bg-surface-elevated px-3 py-2 text-sm outline-none focus:border-emerald-500"
             />
             <div className="flex justify-end gap-2">
               <Button variant="secondary" onClick={() => setMode("list")}>
@@ -142,20 +142,20 @@ export function MistakeRecordModal({
             </div>
 
             {recordsQuery.isLoading ? (
-              <p className="py-8 text-center text-sm text-gray-500">{t("common.loading")}</p>
+              <p className="py-8 text-center text-sm text-text-secondary">{t("common.loading")}</p>
             ) : recordsQuery.data?.length ? (
               <ul className="max-h-[50vh] space-y-3 overflow-y-auto pr-1">
                 {recordsQuery.data.map((record) => (
                   <li
                     key={record.id}
-                    className="rounded-xl border border-gray-200 p-3 dark:border-neutral-800"
+                    className="rounded-xl border border-border-default p-3"
                   >
                     {editingRecord?.id === record.id ? (
                       <div className="space-y-3">
                         <textarea
                           value={content}
                           onChange={(e) => setContent(e.target.value)}
-                          className="min-h-28 w-full resize-y rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 dark:border-neutral-700 dark:bg-neutral-950"
+                          className="min-h-28 w-full resize-y rounded-xl border border-border-default bg-surface-elevated px-3 py-2 text-sm outline-none focus:border-emerald-500"
                         />
                         <div className="flex justify-end gap-2">
                           <Button variant="secondary" size="sm" onClick={cancelEdit}>
@@ -168,9 +168,9 @@ export function MistakeRecordModal({
                       </div>
                     ) : (
                       <>
-                        <p className="whitespace-pre-wrap text-sm text-gray-900 dark:text-gray-100">{record.content}</p>
+                        <p className="whitespace-pre-wrap text-sm text-text-primary">{record.content}</p>
                         <div className="mt-3 flex items-center justify-between gap-3">
-                          <time className="text-xs text-gray-500">{formatDate(record.createdAt)}</time>
+                          <time className="text-xs text-text-secondary">{formatDate(record.createdAt)}</time>
                           <div className="flex gap-2">
                             <Button variant="ghost" size="sm" onClick={() => startEdit(record)}>
                               {t("common.edit")}
@@ -186,7 +186,7 @@ export function MistakeRecordModal({
                 ))}
               </ul>
             ) : (
-              <p className="py-8 text-center text-sm text-gray-500">{t("learn.noMistakeRecords")}</p>
+              <p className="py-8 text-center text-sm text-text-secondary">{t("learn.noMistakeRecords")}</p>
             )}
           </div>
         )}

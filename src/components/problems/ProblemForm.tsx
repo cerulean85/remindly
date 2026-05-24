@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Button } from "@/components/ui/Button"
 import { MarkdownPreview } from "@/components/notes/MarkdownPreview"
-import { TagInput, type KeywordSuggestion } from "./TagInput"
+import { TagInput, type Suggestion } from "./TagInput"
 import { uploadImage } from "@/lib/uploadImage"
 import { cn } from "@/lib/utils"
-import { useDraftAutosave } from "@/hooks/useDraftAutosave"
+import { readInitialDraft, useDraftAutosave } from "@/hooks/useDraftAutosave"
 import type { Category, Problem } from "@/types"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
@@ -36,6 +36,11 @@ interface ProblemFormProps {
   hideActions?: boolean
   /** When set, mirrors form state to localStorage under this key. */
   autosaveKey?: string | null
+  /** If false, skip restoring an existing draft on mount (DB baseline wins).
+   *  Writes still happen so users can resume after navigating away. Defaults
+   *  to true (suitable for "create" flows). Set false on "edit" so stale
+   *  drafts can't shadow the persisted record. */
+  restoreDraft?: boolean
   /** Notified whenever dirty/valid status changes. */
   onStateChange?: (state: { isDirty: boolean; isValid: boolean; isUploading: boolean }) => void
 }
@@ -62,6 +67,19 @@ function sameState(a: ProblemFormState, b: ProblemFormState) {
   )
 }
 
+// A draft is "meaningful" only if any field carries real content. Empty
+// drafts can be persisted accidentally (e.g., user opens the form then
+// leaves) and would otherwise clobber the DB-backed baseline on next mount.
+function hasMeaningfulContent(s: ProblemFormState): boolean {
+  return (
+    s.question.trim().length > 0 ||
+    s.answer.trim().length > 0 ||
+    s.keywords.length > 0 ||
+    s.images.length > 0 ||
+    s.categoryId !== ""
+  )
+}
+
 export function ProblemForm({
   initial,
   categories,
@@ -71,21 +89,37 @@ export function ProblemForm({
   formId,
   hideActions,
   autosaveKey,
+  restoreDraft = true,
   onStateChange,
 }: ProblemFormProps) {
   const { t } = useTranslation()
-  const baselineRef = useRef<ProblemFormState>(buildInitialState(initial))
-  const [question, setQuestion] = useState(baselineRef.current.question)
-  const [answer, setAnswer] = useState(baselineRef.current.answer)
-  const [keywords, setKeywords] = useState<string[]>(baselineRef.current.keywords)
-  const [categoryId, setCategoryId] = useState<string>(baselineRef.current.categoryId)
-  const [images, setImages] = useState<string[]>(baselineRef.current.images)
+  // Baseline is what we compare current state against to compute `isDirty`.
+  // Held in state so reads happen during render and updates re-trigger the
+  // dirty check on submit.
+  const [baseline, setBaseline] = useState<ProblemFormState>(() => buildInitialState(initial))
+  // Restore any draft on first render so the initial state already reflects
+  // unsaved work. Two gates protect against data loss:
+  //   1. `restoreDraft=false` (edit mode) — DB baseline always wins.
+  //   2. Empty drafts are ignored so an accidental "opened-and-left"
+  //      snapshot can't blank out the baseline.
+  const [initialValues] = useState<ProblemFormState>(() => {
+    if (!restoreDraft) return baseline
+    const draft = readInitialDraft<ProblemFormState>(autosaveKey ?? null)
+    if (!draft || !hasMeaningfulContent(draft)) return baseline
+    if (sameState(draft, baseline)) return baseline
+    return draft
+  })
+  const [question, setQuestion] = useState(initialValues.question)
+  const [answer, setAnswer] = useState(initialValues.answer)
+  const [keywords, setKeywords] = useState<string[]>(initialValues.keywords)
+  const [categoryId, setCategoryId] = useState<string>(initialValues.categoryId)
+  const [images, setImages] = useState<string[]>(initialValues.images)
   const [answerView, setAnswerView] = useState<"write" | "preview">("write")
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const { data: keywordSuggestions = [] } = useQuery<KeywordSuggestion[]>({
+  const { data: keywordSuggestions = [] } = useQuery<Suggestion[]>({
     queryKey: ["keywords"],
     queryFn: () => fetch("/api/keywords").then((r) => r.json()),
     staleTime: 60_000,
@@ -93,23 +127,13 @@ export function ProblemForm({
 
   const currentState: ProblemFormState = { question, answer, keywords, categoryId, images }
 
-  const { restored, clear: clearDraft } = useDraftAutosave<ProblemFormState>(
+  const { clear: clearDraft } = useDraftAutosave<ProblemFormState>(
     autosaveKey ?? null,
     currentState,
     { debounceMs: 800 },
   )
 
-  useEffect(() => {
-    if (!restored) return
-    if (sameState(restored, baselineRef.current)) return
-    setQuestion(restored.question)
-    setAnswer(restored.answer)
-    setKeywords(restored.keywords)
-    setCategoryId(restored.categoryId)
-    setImages(restored.images)
-  }, [restored])
-
-  const isDirty = !sameState(currentState, baselineRef.current)
+  const isDirty = !sameState(currentState, baseline)
   const isValid = question.trim().length > 0 && answer.trim().length > 0
   useEffect(() => {
     onStateChange?.({ isDirty, isValid, isUploading: uploading })
@@ -120,7 +144,7 @@ export function ProblemForm({
     if (uploading) return
     await onSubmit({ question, answer, keywords, categoryId: categoryId || null, images })
     clearDraft()
-    baselineRef.current = currentState
+    setBaseline(currentState)
   }
 
   const handleFiles = async (files: FileList | null) => {
@@ -149,7 +173,7 @@ export function ProblemForm({
   return (
     <form id={formId} onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="mb-1.5 block text-sm font-medium text-text-secondary">
           {t("problems.question")} *
         </label>
         <textarea
@@ -157,16 +181,16 @@ export function ProblemForm({
           onChange={(e) => setQuestion(e.target.value)}
           required
           rows={3}
-          className="w-full rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400 resize-none"
+          className="w-full rounded-xl border border-border-default bg-surface-elevated px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400 resize-none"
         />
       </div>
 
       <div>
         <div className="mb-1.5 flex items-center justify-between gap-3">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="block text-sm font-medium text-text-secondary">
             {t("problems.answer")} *
           </label>
-          <div className="flex rounded-lg border border-gray-200 dark:border-neutral-700 overflow-hidden text-xs">
+          <div className="flex rounded-lg border border-border-default overflow-hidden text-xs">
             {(["write", "preview"] as const).map((view) => (
               <button
                 key={view}
@@ -176,7 +200,7 @@ export function ProblemForm({
                   "px-2.5 py-1 transition-colors",
                   answerView === view
                     ? "bg-emerald-500 text-white"
-                    : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800"
+                    : "text-text-secondary hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.06]"
                 )}
               >
                 {view === "write" ? "작성" : "미리보기"}
@@ -191,14 +215,14 @@ export function ProblemForm({
             required
             rows={14}
             placeholder="Markdown"
-            className="w-full rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm font-mono leading-relaxed outline-none focus:ring-2 focus:ring-emerald-400 resize-y min-h-[20rem]"
+            className="w-full rounded-xl border border-border-default bg-surface-elevated px-3 py-2 text-sm font-mono leading-relaxed outline-none focus:ring-2 focus:ring-emerald-400 resize-y min-h-[20rem]"
           />
         ) : (
-          <div className="min-h-[20rem] rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2">
+          <div className="min-h-[20rem] rounded-xl border border-border-default bg-surface-elevated px-3 py-2">
             {answer.trim() ? (
               <MarkdownPreview content={answer} />
             ) : (
-              <p className="text-sm text-gray-400">미리볼 설명이 없습니다.</p>
+              <p className="text-sm text-text-tertiary">미리볼 설명이 없습니다.</p>
             )}
           </div>
         )}
@@ -206,7 +230,7 @@ export function ProblemForm({
 
       <div>
         <div className="mb-1.5 flex items-center justify-between">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="block text-sm font-medium text-text-secondary">
             {t("problems.images")}
           </label>
           <button
@@ -232,7 +256,7 @@ export function ProblemForm({
         {images.length > 0 ? (
           <div className="grid grid-cols-3 gap-2">
             {images.map((url) => (
-              <div key={url} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900">
+              <div key={url} className="relative aspect-square rounded-lg overflow-hidden border border-border-default bg-surface-base">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={url} alt="" className="h-full w-full object-cover" />
                 <button
@@ -247,12 +271,12 @@ export function ProblemForm({
             ))}
           </div>
         ) : (
-          <p className="text-xs text-gray-400">{t("problems.imagesHint")}</p>
+          <p className="text-xs text-text-tertiary">{t("problems.imagesHint")}</p>
         )}
       </div>
 
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="mb-1.5 block text-sm font-medium text-text-secondary">
           {t("problems.keywords")}
         </label>
         <TagInput
@@ -260,17 +284,18 @@ export function ProblemForm({
           onChange={setKeywords}
           placeholder={t("problems.keywordsPlaceholder")}
           suggestions={keywordSuggestions}
+          excludeProblemId={initial?.id}
         />
       </div>
 
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="mb-1.5 block text-sm font-medium text-text-secondary">
           {t("problems.category")}
         </label>
         <select
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
-          className="w-full rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
+          className="w-full rounded-xl border border-border-default bg-surface-elevated px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
         >
           <option value="">{t("problems.noCategory")}</option>
           {categories.map((cat) => (

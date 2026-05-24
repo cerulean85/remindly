@@ -2,25 +2,30 @@
 
 import { useState, useRef, useEffect, useMemo, useId, KeyboardEvent } from "react"
 import { Badge } from "@/components/ui/Badge"
+import { ProblemsIcon } from "@/components/ui/Icons"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
-export type KeywordSuggestion = { keyword: string; count: number }
+export type Suggestion =
+  | { text: string; type: "keyword"; count: number }
+  | { text: string; type: "problem"; count: number; problemId: string }
 
 interface TagInputProps {
   value: string[]
   onChange: (tags: string[]) => void
   placeholder?: string
   className?: string
-  suggestions?: KeywordSuggestion[]
+  suggestions?: Suggestion[]
+  /** Hide this problem's own title from the suggestion list (avoids self-link). */
+  excludeProblemId?: string
 }
 
 const MAX_VISIBLE = 8
 const FREQUENT_VISIBLE = 5
 
-function scoreSuggestion(keyword: string, query: string): number | null {
-  const k = keyword.toLowerCase()
+function scoreSuggestion(text: string, query: string): number | null {
+  const k = text.toLowerCase()
   const q = query.toLowerCase()
   const idx = k.indexOf(q)
   if (idx < 0) return null
@@ -33,6 +38,7 @@ export function TagInput({
   placeholder,
   className,
   suggestions = [],
+  excludeProblemId,
 }: TagInputProps) {
   const { t } = useTranslation()
   const listboxId = useId()
@@ -44,8 +50,13 @@ export function TagInput({
 
   const valueSet = useMemo(() => new Set(value), [value])
   const available = useMemo(
-    () => suggestions.filter((s) => !valueSet.has(s.keyword)),
-    [suggestions, valueSet],
+    () =>
+      suggestions.filter((s) => {
+        if (valueSet.has(s.text)) return false
+        if (s.type === "problem" && excludeProblemId && s.problemId === excludeProblemId) return false
+        return true
+      }),
+    [suggestions, valueSet, excludeProblemId],
   )
 
   const trimmed = input.trim()
@@ -56,13 +67,13 @@ export function TagInput({
       return available.slice(0, FREQUENT_VISIBLE)
     }
     return available
-      .map((s) => ({ s, score: scoreSuggestion(s.keyword, trimmed) }))
-      .filter((x): x is { s: KeywordSuggestion; score: number } => x.score !== null)
+      .map((s) => ({ s, score: scoreSuggestion(s.text, trimmed) }))
+      .filter((x): x is { s: Suggestion; score: number } => x.score !== null)
       .sort(
         (a, b) =>
           a.score - b.score ||
           b.s.count - a.s.count ||
-          a.s.keyword.localeCompare(b.s.keyword),
+          a.s.text.localeCompare(b.s.text),
       )
       .slice(0, MAX_VISIBLE)
       .map((x) => x.s)
@@ -71,7 +82,7 @@ export function TagInput({
   const shouldShowDropdown = open && filtered.length > 0
 
   const filteredKey = useMemo(
-    () => filtered.map((f) => f.keyword).join("\n"),
+    () => filtered.map((f) => f.text).join("\n"),
     [filtered],
   )
   // Reset highlight whenever the candidate list shifts. Adjusting state during
@@ -150,7 +161,7 @@ export function TagInput({
     if (e.key === "Enter") {
       e.preventDefault()
       if (shouldShowDropdown && selectedIndex >= 0) {
-        addTag(filtered[selectedIndex].keyword)
+        addTag(filtered[selectedIndex].text)
       } else {
         addTag(input)
       }
@@ -158,7 +169,7 @@ export function TagInput({
     }
     if (e.key === "Tab" && shouldShowDropdown && selectedIndex >= 0) {
       e.preventDefault()
-      addTag(filtered[selectedIndex].keyword)
+      addTag(filtered[selectedIndex].text)
       return
     }
     if (e.key === "Backspace" && !input && value.length > 0) {
@@ -186,7 +197,7 @@ export function TagInput({
 
   return (
     <div ref={containerRef} className={cn("relative", className)}>
-      <div className="flex flex-wrap gap-1.5 rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 min-h-[42px]">
+      <div className="flex flex-wrap gap-1.5 rounded-xl border border-border-default bg-surface-elevated px-3 py-2 min-h-[42px]">
         {value.map((tag) => (
           <Badge key={tag} onRemove={() => onChange(value.filter((t) => t !== tag))}>
             {tag}
@@ -202,7 +213,7 @@ export function TagInput({
           onFocus={() => setOpen(true)}
           onBlur={handleBlur}
           placeholder={value.length === 0 ? placeholder : ""}
-          className="flex-1 min-w-[120px] bg-transparent text-sm outline-none placeholder:text-gray-400"
+          className="flex-1 min-w-[120px] bg-transparent text-sm outline-none placeholder:text-text-tertiary"
           role="combobox"
           aria-expanded={shouldShowDropdown}
           aria-autocomplete="list"
@@ -213,7 +224,7 @@ export function TagInput({
       {shouldShowDropdown && (
         <div
           id={listboxId}
-          className="absolute left-0 right-0 top-full z-50 mt-1.5 max-h-64 overflow-y-auto rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg"
+          className="absolute left-0 right-0 top-full z-50 mt-1.5 max-h-64 overflow-y-auto rounded-xl border border-border-default bg-surface-elevated shadow-lg"
           role="listbox"
         >
           {isFrequentMode && (
@@ -221,32 +232,40 @@ export function TagInput({
               id={frequentHeadingId}
               role="group"
               aria-labelledby={frequentHeadingId}
-              className="px-3 py-1.5 text-xs uppercase tracking-wider text-gray-400 border-b border-gray-100 dark:border-neutral-800"
+              className="px-3 py-1.5 text-xs uppercase tracking-wider text-text-tertiary border-b border-border-subtle"
             >
               {t("problems.frequentlyUsed")}
             </div>
           )}
           {filtered.map((item, idx) => (
             <button
-              key={item.keyword}
+              key={item.type === "problem" ? `p:${item.problemId}` : `k:${item.text}`}
               type="button"
               role="option"
               aria-selected={idx === selectedIndex}
               onMouseDown={(e) => e.preventDefault()}
               onMouseEnter={() => setSelectedIndex(idx)}
               onClick={() => {
-                addTag(item.keyword)
+                addTag(item.text)
                 inputRef.current?.focus()
               }}
               className={cn(
                 "flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm transition-colors",
                 idx === selectedIndex
-                  ? "bg-emerald-50 dark:bg-emerald-500/10 text-gray-900 dark:text-gray-100"
-                  : "text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-neutral-800/60",
+                  ? "bg-emerald-50 dark:bg-emerald-500/10 text-text-primary"
+                  : "text-text-primary hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.04]",
               )}
+              title={item.type === "problem" ? t("problems.suggestionFromProblem") : undefined}
             >
-              <span className="truncate">{item.keyword}</span>
-              <span className="shrink-0 text-xs text-gray-400">· {item.count}</span>
+              <span className="flex items-center gap-2 min-w-0">
+                {item.type === "problem" && (
+                  <ProblemsIcon className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                )}
+                <span className="truncate">{item.text}</span>
+              </span>
+              {item.count > 0 && (
+                <span className="shrink-0 text-xs text-text-tertiary">· {item.count}</span>
+              )}
             </button>
           ))}
         </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 
 type Options = {
   /** Delay before persisting changes to localStorage (ms). */
@@ -9,48 +9,35 @@ type Options = {
   paused?: boolean
 }
 
+// Pure read — call inside a `useState(() => readInitialDraft(...))` so the
+// component initializes from the draft on first render with no extra effect.
+export function readInitialDraft<T>(key: string | null): T | null {
+  if (!key || typeof window === "undefined") return null
+  try {
+    const raw = window.localStorage.getItem(key)
+    if (raw) return JSON.parse(raw) as T
+  } catch {
+    // ignore parse errors
+  }
+  return null
+}
+
 /**
- * Mirrors `value` into localStorage under `key` with a debounce. On mount it
- * reads any existing draft so the caller can decide whether to apply it.
+ * Mirrors `value` into localStorage under `key` with a debounce.
+ * Companion to `readInitialDraft` — read once on mount, then call this to
+ * keep the store in sync as the user types.
  *
- * Returns:
- * - `restored`: the value read from storage on first mount (or null).
- * - `clear()`: removes the stored draft. Call after a successful explicit save.
+ * `clear()` removes the stored draft. Call after a successful explicit save.
  */
 export function useDraftAutosave<T>(
   key: string | null,
   value: T,
   { debounceMs = 1000, paused = false }: Options = {},
 ) {
-  const [restored, setRestored] = useState<T | null>(null)
-  const hydratedRef = useRef(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const skipNextRef = useRef(false)
 
   useEffect(() => {
-    if (!key) return
-    if (typeof window === "undefined") return
-    try {
-      const raw = window.localStorage.getItem(key)
-      if (raw) {
-        const parsed = JSON.parse(raw) as T
-        setRestored(parsed)
-        skipNextRef.current = true
-      }
-    } catch {
-      // ignore parse errors
-    }
-    hydratedRef.current = true
-  }, [key])
-
-  useEffect(() => {
-    if (!key) return
-    if (!hydratedRef.current) return
-    if (paused) return
-    if (skipNextRef.current) {
-      skipNextRef.current = false
-      return
-    }
+    if (!key || paused) return
     if (timerRef.current) clearTimeout(timerRef.current)
     timerRef.current = setTimeout(() => {
       try {
@@ -74,5 +61,5 @@ export function useDraftAutosave<T>(
     }
   }
 
-  return { restored, clear }
+  return { clear }
 }

@@ -8,6 +8,11 @@ import { MarkdownPreview } from "@/components/notes/MarkdownPreview"
 import { PreviewToggleIcon, SearchIcon, SidebarToggleIcon, XIcon } from "@/components/ui/Icons"
 import { uploadImage } from "@/lib/uploadImage"
 import { cn } from "@/lib/utils"
+import {
+  useLocalStorageState,
+  booleanSerializer,
+  enumSerializer,
+} from "@/hooks/useLocalStorageState"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
@@ -22,6 +27,7 @@ type Note = NoteListItem & { content: string }
 
 type ViewMode = "edit" | "preview" | "split"
 
+const VIEW_MODES: readonly ViewMode[] = ["edit", "preview", "split"]
 const VIEW_STORAGE_KEY = "notes.viewMode"
 const SIDEBAR_STORAGE_KEY = "notes.sidebarCollapsed"
 const PREVIEW_STORAGE_KEY = "notes.previewCollapsed"
@@ -45,10 +51,22 @@ export default function NotesPage() {
   const [draftContent, setDraftContent] = useState("")
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle")
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<ViewMode>("split")
+  const [viewMode, setViewMode] = useLocalStorageState<ViewMode>(
+    VIEW_STORAGE_KEY,
+    "split",
+    enumSerializer(VIEW_MODES),
+  )
   const [showSidebar, setShowSidebar] = useState(true)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [previewCollapsed, setPreviewCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorageState(
+    SIDEBAR_STORAGE_KEY,
+    false,
+    booleanSerializer,
+  )
+  const [previewCollapsed, setPreviewCollapsed] = useLocalStorageState(
+    PREVIEW_STORAGE_KEY,
+    false,
+    booleanSerializer,
+  )
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -112,51 +130,6 @@ export default function NotesPage() {
     setIsDragging(false)
     handleImageFiles(e.dataTransfer.files)
   }
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    const stored = window.localStorage.getItem(VIEW_STORAGE_KEY)
-    if (stored !== "edit" && stored !== "preview" && stored !== "split") return
-
-    let active = true
-    queueMicrotask(() => {
-      if (active) setViewMode(stored)
-    })
-    return () => {
-      active = false
-    }
-  }, [])
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    window.localStorage.setItem(VIEW_STORAGE_KEY, viewMode)
-  }, [viewMode])
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    const storedSidebar = window.localStorage.getItem(SIDEBAR_STORAGE_KEY)
-    const storedPreview = window.localStorage.getItem(PREVIEW_STORAGE_KEY)
-
-    let active = true
-    queueMicrotask(() => {
-      if (!active) return
-      setSidebarCollapsed(storedSidebar === "true")
-      setPreviewCollapsed(storedPreview === "true")
-    })
-    return () => {
-      active = false
-    }
-  }, [])
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(sidebarCollapsed))
-  }, [sidebarCollapsed])
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    window.localStorage.setItem(PREVIEW_STORAGE_KEY, String(previewCollapsed))
-  }, [previewCollapsed])
 
   const { data: notes = [], isLoading } = useQuery<NoteListItem[]>({
     queryKey: ["notes", debouncedSearch],
@@ -288,7 +261,7 @@ export default function NotesPage() {
     <div className="flex h-[calc(100dvh-3.5rem)] md:h-screen">
       <aside
         className={cn(
-          "flex flex-col border-r border-gray-200 dark:border-neutral-800 bg-white dark:bg-black",
+          "flex flex-col border-r border-border-default bg-surface-elevated",
           sidebarCollapsed
             ? showSidebar
               ? "flex w-full md:hidden"
@@ -298,12 +271,12 @@ export default function NotesPage() {
             : "hidden md:flex md:w-80 md:shrink-0"
         )}
       >
-        <div className="p-4 border-b border-gray-200 dark:border-neutral-800 flex items-center gap-2">
-          <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">{t("notes.title")}</h1>
+        <div className="p-4 border-b border-border-default flex items-center gap-2">
+          <h1 className="text-lg font-bold text-text-primary">{t("notes.title")}</h1>
           <button
             type="button"
             onClick={() => setSidebarCollapsed(true)}
-            className="hidden md:inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-neutral-800 dark:hover:text-gray-100"
+            className="hidden md:inline-flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary hover:bg-black/[0.06] hover:text-text-primary dark:text-text-tertiary"
             aria-label={t("notes.collapseList")}
             title={t("notes.collapseList")}
           >
@@ -320,19 +293,19 @@ export default function NotesPage() {
         </div>
         <div className="px-3 pt-3 pb-2">
           <form className="relative" onSubmit={handleSearchSubmit}>
-            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary pointer-events-none" />
             <input
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder={t("notes.searchPlaceholder")}
-              className="w-full rounded-full border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 pl-9 pr-9 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+              className="w-full rounded-full border border-border-default bg-surface-elevated pl-9 pr-9 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
             />
             {searchInput && (
               <button
                 type="button"
                 onClick={handleClearSearch}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-secondary"
                 aria-label={t("common.close")}
               >
                 <XIcon className="h-4 w-4" />
@@ -343,9 +316,9 @@ export default function NotesPage() {
 
         <div className="flex-1 overflow-y-auto px-2 pb-3">
           {isLoading ? (
-            <div className="p-4 text-sm text-gray-400">{t("common.loading")}</div>
+            <div className="p-4 text-sm text-text-tertiary">{t("common.loading")}</div>
           ) : isEmptyList ? (
-            <div className="p-4 text-sm text-gray-400 text-center">
+            <div className="p-4 text-sm text-text-tertiary text-center">
               {debouncedSearch ? t("notes.noSearchResults") : t("notes.noNotes")}
             </div>
           ) : (
@@ -362,17 +335,17 @@ export default function NotesPage() {
                       "w-full text-left rounded-xl px-3 py-2 transition-colors",
                       selectedId === note.id
                         ? "bg-emerald-50 dark:bg-emerald-950/60"
-                        : "hover:bg-gray-100 dark:hover:bg-neutral-800/60"
+                        : "hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.06]/60"
                     )}
                   >
                     <div className="flex items-baseline gap-2">
                       <p className={cn(
                         "flex-1 truncate text-sm font-medium",
-                        note.title.trim() ? "text-gray-900 dark:text-gray-100" : "text-gray-400 italic"
+                        note.title.trim() ? "text-text-primary" : "text-text-tertiary italic"
                       )}>
                         {noteTitle(note)}
                       </p>
-                      <span className="text-[10px] text-gray-400 shrink-0">{formatDate(note.updatedAt)}</span>
+                      <span className="text-[10px] text-text-tertiary shrink-0">{formatDate(note.updatedAt)}</span>
                     </div>
                   </button>
                 </li>
@@ -384,7 +357,7 @@ export default function NotesPage() {
 
       <section
         className={cn(
-          "relative flex-1 flex flex-col bg-white dark:bg-black",
+          "relative flex-1 flex flex-col bg-surface-elevated",
           showSidebar ? "hidden md:flex" : "flex"
         )}
       >
@@ -392,7 +365,7 @@ export default function NotesPage() {
           <button
             type="button"
             onClick={() => setSidebarCollapsed(false)}
-            className="hidden md:inline-flex absolute left-3 top-3 z-10 h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-sm hover:bg-gray-50 hover:text-gray-900 dark:border-neutral-700 dark:bg-black dark:text-gray-400 dark:hover:bg-neutral-900 dark:hover:text-gray-100"
+            className="hidden md:inline-flex absolute left-3 top-3 z-10 h-8 w-8 items-center justify-center rounded-lg border border-border-default bg-surface-elevated text-text-secondary shadow-sm hover:bg-surface-base hover:text-text-primary dark:text-text-tertiary"
             aria-label={t("notes.expandList")}
             title={t("notes.expandList")}
           >
@@ -400,16 +373,16 @@ export default function NotesPage() {
           </button>
         )}
         {!selectedId || !selectedNote ? (
-          <div className="flex flex-1 items-center justify-center text-sm text-gray-400">
+          <div className="flex flex-1 items-center justify-center text-sm text-text-tertiary">
             {t("notes.selectOrCreate")}
           </div>
         ) : (
           <>
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 dark:border-neutral-800">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-border-default">
               <button
                 type="button"
                 onClick={() => setShowSidebar(true)}
-                className="md:hidden text-gray-500 hover:text-gray-900 dark:hover:text-gray-100"
+                className="md:hidden text-text-secondary hover:text-text-primary"
                 aria-label={t("notes.backToList")}
               >
                 ←
@@ -418,7 +391,7 @@ export default function NotesPage() {
                 <button
                   type="button"
                   onClick={() => setSidebarCollapsed(false)}
-                  className="hidden md:inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-neutral-800 dark:hover:text-gray-100"
+                  className="hidden md:inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-black/[0.06] hover:text-text-primary dark:text-text-tertiary"
                   aria-label={t("notes.expandList")}
                   title={t("notes.expandList")}
                 >
@@ -441,7 +414,7 @@ export default function NotesPage() {
                 className="hidden"
                 onChange={(e) => handleImageFiles(e.target.files)}
               />
-              <span className="text-xs text-gray-400 ml-auto">
+              <span className="text-xs text-text-tertiary ml-auto">
                 {uploadError
                   ? <span className="text-red-500">{uploadError}</span>
                   : saveStatus === "saving"
@@ -450,7 +423,7 @@ export default function NotesPage() {
                   ? t("notes.saved")
                   : ""}
               </span>
-              <div className="flex rounded-lg border border-gray-200 dark:border-neutral-700 overflow-hidden text-xs">
+              <div className="flex rounded-lg border border-border-default overflow-hidden text-xs">
                 {(["edit", "split", "preview"] as ViewMode[]).map((m) => (
                   <button
                     key={m}
@@ -459,7 +432,7 @@ export default function NotesPage() {
                       "px-2.5 py-1 transition-colors",
                       viewMode === m
                         ? "bg-emerald-500 text-white"
-                        : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800"
+                        : "text-text-secondary hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.06]"
                     )}
                   >
                     {t(`notes.view.${m}`)}
@@ -470,7 +443,7 @@ export default function NotesPage() {
                 type="button"
                 onClick={() => setPreviewCollapsed((prev) => !prev)}
                 disabled={viewMode !== "split"}
-                className="hidden md:inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-40 dark:text-gray-400 dark:hover:bg-neutral-800 dark:hover:text-gray-100"
+                className="hidden md:inline-flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary hover:bg-black/[0.06] hover:text-text-primary disabled:pointer-events-none disabled:opacity-40 dark:text-text-tertiary"
                 aria-label={previewCollapsed ? t("notes.expandPreview") : t("notes.collapsePreview")}
                 title={previewCollapsed ? t("notes.expandPreview") : t("notes.collapsePreview")}
               >
@@ -479,7 +452,7 @@ export default function NotesPage() {
               <button
                 type="button"
                 onClick={() => setPendingDeleteId(selectedId)}
-                className="text-xs text-gray-500 hover:text-red-500 px-2 py-1"
+                className="text-xs text-text-secondary hover:text-red-500 px-2 py-1"
               >
                 {t("notes.delete")}
               </button>
@@ -490,15 +463,15 @@ export default function NotesPage() {
               value={draftTitle}
               onChange={(e) => setDraftTitle(e.target.value)}
               placeholder={t("notes.titlePlaceholder")}
-              className="w-full px-6 pt-5 pb-2 text-2xl font-semibold bg-transparent outline-none placeholder:text-gray-300 dark:placeholder:text-gray-600 text-gray-900 dark:text-gray-100"
+              className="w-full px-6 pt-5 pb-2 text-2xl font-semibold bg-transparent outline-none placeholder:text-text-tertiary text-text-primary"
             />
 
-            <div className="flex flex-1 min-h-0 overflow-hidden border-t border-gray-100 dark:border-neutral-800">
+            <div className="flex flex-1 min-h-0 overflow-hidden border-t border-border-subtle">
               {showEditorPane && (
                 <div
                   className={cn(
                     "flex-1 min-w-0 relative",
-                    showPreviewPane && "border-r border-gray-200 dark:border-neutral-800"
+                    showPreviewPane && "border-r border-border-default"
                   )}
                 >
                   <textarea
@@ -516,7 +489,7 @@ export default function NotesPage() {
                     onDrop={handleDrop}
                     placeholder={t("notes.contentPlaceholder")}
                     spellCheck={false}
-                    className="w-full h-full resize-none px-6 py-4 text-sm font-mono leading-relaxed bg-transparent outline-none placeholder:text-gray-300 dark:placeholder:text-gray-600 text-gray-900 dark:text-gray-100"
+                    className="w-full h-full resize-none px-6 py-4 text-sm font-mono leading-relaxed bg-transparent outline-none placeholder:text-text-tertiary text-text-primary"
                   />
                   {isDragging && (
                     <div className="pointer-events-none absolute inset-2 rounded-xl border-2 border-dashed border-emerald-400 bg-emerald-50/60 dark:bg-emerald-500/10 flex items-center justify-center text-sm font-medium text-emerald-600 dark:text-emerald-300">
@@ -530,7 +503,7 @@ export default function NotesPage() {
                   {draftContent.trim() ? (
                     <MarkdownPreview content={draftContent} />
                   ) : (
-                    <p className="text-sm text-gray-400">{previewSnippet || t("notes.previewEmpty")}</p>
+                    <p className="text-sm text-text-tertiary">{previewSnippet || t("notes.previewEmpty")}</p>
                   )}
                 </div>
               )}

@@ -71,12 +71,12 @@ export default function MindmapPage() {
 
   return (
     <div className="relative flex h-full flex-col">
-      <header className="flex items-center justify-between gap-3 border-b border-gray-100 dark:border-neutral-800 px-4 py-3 md:px-6">
-        <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+      <header className="flex items-center justify-between gap-3 border-b border-border-subtle px-4 py-3 md:px-6">
+        <h1 className="text-lg font-semibold text-text-primary">
           {t("nav.mindmap")}
         </h1>
         {data && (
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-xs text-text-secondary">
             {t("mindmap.summary", {
               problems: data.nodes.filter((n) => n.type === "problem").length,
               keywords: data.nodes.filter((n) => n.type === "keyword").length,
@@ -90,7 +90,7 @@ export default function MindmapPage() {
         style={{ background: resolvedTheme === "dark" ? BG_DARK : BG_LIGHT }}
       >
         {isLoading && (
-          <p className="absolute inset-0 flex items-center justify-center text-sm text-gray-400">
+          <p className="absolute inset-0 flex items-center justify-center text-sm text-text-tertiary">
             {t("common.loading")}
           </p>
         )}
@@ -100,7 +100,7 @@ export default function MindmapPage() {
           </p>
         )}
         {data && data.nodes.length === 0 && !isLoading && (
-          <p className="absolute inset-0 flex items-center justify-center text-sm text-gray-500">
+          <p className="absolute inset-0 flex items-center justify-center text-sm text-text-secondary">
             {t("mindmap.empty")}
           </p>
         )}

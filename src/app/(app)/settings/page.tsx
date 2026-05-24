@@ -16,8 +16,8 @@ import "@/lib/i18n"
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 p-5">
-      <h2 className="mb-4 text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{title}</h2>
+    <div className="rounded-2xl bg-surface-elevated border border-border-default p-5">
+      <h2 className="mb-4 text-sm font-semibold text-text-secondary uppercase tracking-wide">{title}</h2>
       {children}
     </div>
   )
@@ -104,7 +104,7 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-lg px-4 py-6 flex flex-col gap-5">
-      <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t("settings.title")}</h1>
+      <h1 className="text-xl font-bold text-text-primary">{t("settings.title")}</h1>
 
       <Section title={t("settings.theme")}>
         <ThemeToggle />
@@ -117,7 +117,7 @@ export default function SettingsPage() {
       <Section title={t("settings.retrieval")}>
         <div className="flex flex-col gap-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
               {t("settings.retrievalThreshold")}
             </label>
             <div className="flex items-center gap-2">
@@ -133,14 +133,14 @@ export default function SettingsPage() {
                     updateSettings.mutate({ retrievalThreshold: v })
                   }
                 }}
-                className="w-24 rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
+                className="w-24 rounded-xl border border-border-default bg-surface-elevated px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
               />
-              <span className="text-sm text-gray-500">%</span>
-              <p className="ml-auto text-xs text-gray-400">{t("settings.retrievalThresholdHint")}</p>
+              <span className="text-sm text-text-secondary">%</span>
+              <p className="ml-auto text-xs text-text-tertiary">{t("settings.retrievalThresholdHint")}</p>
             </div>
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
               {t("settings.staleDays")}
             </label>
             <div className="flex items-center gap-2">
@@ -156,10 +156,10 @@ export default function SettingsPage() {
                     updateSettings.mutate({ staleDays: v })
                   }
                 }}
-                className="w-24 rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
+                className="w-24 rounded-xl border border-border-default bg-surface-elevated px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
               />
-              <span className="text-sm text-gray-500">{t("settings.daysSuffix")}</span>
-              <p className="ml-auto text-xs text-gray-400">{t("settings.staleDaysHint")}</p>
+              <span className="text-sm text-text-secondary">{t("settings.daysSuffix")}</span>
+              <p className="ml-auto text-xs text-text-tertiary">{t("settings.staleDaysHint")}</p>
             </div>
           </div>
         </div>
@@ -170,13 +170,13 @@ export default function SettingsPage() {
           {categories.map((cat) => (
             <div
               key={cat.id}
-              className="flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-gray-50 dark:hover:bg-neutral-800"
+              className="flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.04]"
             >
               <div className="h-3 w-3 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
-              <span className="flex-1 text-sm text-gray-800 dark:text-gray-200">{cat.name}</span>
-              <span className="text-xs text-gray-400">{cat._count?.problems ?? 0}개</span>
-              <button className="text-xs text-gray-400 hover:text-emerald-500" onClick={() => { setEditCategory(cat); setCatName(cat.name); setCatColor(cat.color) }}>수정</button>
-              <button className="text-xs text-gray-400 hover:text-red-500" onClick={() => setDeleteCategory(cat)}>삭제</button>
+              <span className="flex-1 text-sm text-text-primary">{cat.name}</span>
+              <span className="text-xs text-text-tertiary">{cat._count?.problems ?? 0}개</span>
+              <button className="text-xs text-text-tertiary hover:text-emerald-500" onClick={() => { setEditCategory(cat); setCatName(cat.name); setCatColor(cat.color) }}>수정</button>
+              <button className="text-xs text-text-tertiary hover:text-red-500" onClick={() => setDeleteCategory(cat)}>삭제</button>
             </div>
           ))}
           <Button variant="secondary" size="sm" onClick={() => setShowAddCategory(true)} className="mt-2">
@@ -196,8 +196,8 @@ export default function SettingsPage() {
               </div>
             )}
             <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{session.user.name}</p>
-              <p className="text-xs text-gray-500">{session.user.email}</p>
+              <p className="text-sm font-medium text-text-primary">{session.user.name}</p>
+              <p className="text-xs text-text-secondary">{session.user.email}</p>
             </div>
           </div>
           <div className="flex flex-col gap-2">
@@ -211,7 +211,7 @@ export default function SettingsPage() {
         </Section>
       )}
 
-      <div className="text-center text-xs text-gray-400 pb-4">
+      <div className="text-center text-xs text-text-tertiary pb-4">
         <p>{t("settings.copyright")}</p>
       </div>
 
@@ -219,15 +219,15 @@ export default function SettingsPage() {
       <Modal open={showAddCategory} onClose={() => setShowAddCategory(false)} title={t("categories.add")}>
         <div className="flex flex-col gap-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">{t("categories.name")}</label>
+            <label className="mb-1.5 block text-sm font-medium text-text-secondary">{t("categories.name")}</label>
             <input
               value={catName}
               onChange={(e) => setCatName(e.target.value)}
-              className="w-full rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
+              className="w-full rounded-xl border border-border-default bg-surface-elevated px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">{t("categories.color")}</label>
+            <label className="mb-1.5 block text-sm font-medium text-text-secondary">{t("categories.color")}</label>
             <ColorPicker value={catColor} onChange={setCatColor} />
           </div>
           <div className="flex justify-end gap-2">
@@ -241,15 +241,15 @@ export default function SettingsPage() {
       <Modal open={!!editCategory} onClose={() => setEditCategory(null)} title={t("categories.edit")}>
         <div className="flex flex-col gap-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">{t("categories.name")}</label>
+            <label className="mb-1.5 block text-sm font-medium text-text-secondary">{t("categories.name")}</label>
             <input
               value={catName}
               onChange={(e) => setCatName(e.target.value)}
-              className="w-full rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
+              className="w-full rounded-xl border border-border-default bg-surface-elevated px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400"
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">{t("categories.color")}</label>
+            <label className="mb-1.5 block text-sm font-medium text-text-secondary">{t("categories.color")}</label>
             <ColorPicker value={catColor} onChange={setCatColor} />
           </div>
           <div className="flex justify-end gap-2">

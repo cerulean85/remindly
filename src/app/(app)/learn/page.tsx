@@ -22,9 +22,9 @@ type ChoiceOption = {
 
 function ProgressBar({ index, total }: { index: number; total: number }) {
   return (
-    <div className="flex flex-1 items-center gap-4 text-sm text-gray-500">
+    <div className="flex flex-1 items-center gap-4 text-sm text-text-secondary">
       <span>{index + 1} / {total}</span>
-      <div className="h-1.5 flex-1 rounded-full bg-gray-200 dark:bg-neutral-800">
+      <div className="h-1.5 flex-1 rounded-full bg-black/[0.08] dark:bg-white/[0.10]">
         <div
           className="h-full rounded-full bg-emerald-500 transition-all"
           style={{ width: `${(index / total) * 100}%` }}
@@ -81,15 +81,15 @@ function ChoiceCard({
   const answerPreview = plainText(problem.answer)
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+    <div className="rounded-lg border border-border-default bg-surface-elevated p-5 shadow-sm">
       <div className="mb-4">
         <CategoryBadge category={problem.category} />
       </div>
-      <p className="mb-5 min-h-20 whitespace-pre-wrap text-center text-lg font-medium text-gray-900 dark:text-gray-100">
+      <p className="mb-5 min-h-20 whitespace-pre-wrap text-center text-lg font-medium text-text-primary">
         {problem.question}
       </p>
       {isLoading ? (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-6 text-center text-sm text-gray-500 dark:border-neutral-800 dark:bg-neutral-950">
+        <div className="rounded-lg border border-border-default bg-surface-base px-3 py-6 text-center text-sm text-text-secondary">
           {t("learn.generatingChoices")}
         </div>
       ) : isError ? (
@@ -122,7 +122,7 @@ function ChoiceCard({
                 onClick={() => setSelectedId(option.id)}
                 className={cn(
                   "min-h-12 rounded-lg border px-3 py-2 text-left text-sm transition-colors",
-                  "border-gray-200 hover:bg-gray-50 dark:border-neutral-800 dark:hover:bg-neutral-800",
+                  "border-border-default hover:bg-surface-base",
                   picked && !isCorrect && "border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300",
                   revealCorrect && "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
                 )}
@@ -134,15 +134,15 @@ function ChoiceCard({
         </div>
       )}
       {selected && (
-        <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-neutral-800 dark:bg-neutral-950">
+        <div className="mt-4 rounded-lg border border-border-default bg-surface-base p-3">
           <div className="flex items-center justify-between gap-3">
             <span className={cn("text-sm font-semibold", isCorrect ? "text-emerald-600" : "text-red-600")}>
               {isCorrect ? t("learn.choiceCorrect") : t("learn.choiceWrong")}
             </span>
             <Button onClick={() => onAnswer(isCorrect)}>{t("learn.next")}</Button>
           </div>
-          <p className="mt-2 text-xs font-medium text-gray-500 dark:text-gray-400">{t("learn.correctAnswer")}</p>
-          <p className="mt-1 line-clamp-5 whitespace-pre-wrap text-sm leading-6 text-gray-700 dark:text-gray-200">
+          <p className="mt-2 text-xs font-medium text-text-secondary">{t("learn.correctAnswer")}</p>
+          <p className="mt-1 line-clamp-5 whitespace-pre-wrap text-sm leading-6 text-text-primary">
             {answerPreview || t("learn.correctAnswer")}
           </p>
         </div>
@@ -172,8 +172,8 @@ function LearnSession({
 
   if (total === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center text-gray-500">
-        <LearnIcon className="h-10 w-10 mb-3 text-gray-400" />
+      <div className="flex flex-col items-center justify-center py-20 text-center text-text-secondary">
+        <LearnIcon className="h-10 w-10 mb-3 text-text-tertiary" />
         <p className="font-medium">{t("learn.noProblems")}</p>
         <p className="text-sm mt-1">{t("learn.addProblems")}</p>
       </div>
@@ -184,8 +184,8 @@ function LearnSession({
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <TrophyIcon className="h-10 w-10 mb-3 text-amber-500" />
-        <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">{t("learn.complete")}</p>
-        <p className="text-sm text-gray-500 mb-6">{t("learn.completeMessage")}</p>
+        <p className="text-xl font-bold text-text-primary mb-1">{t("learn.complete")}</p>
+        <p className="text-sm text-text-secondary mb-6">{t("learn.completeMessage")}</p>
         <Button onClick={restart}>{t("learn.restart")}</Button>
       </div>
     )
@@ -272,12 +272,12 @@ export default function LearnPage() {
   return (
     <div className="mx-auto max-w-lg px-4 py-6">
       <div className="mb-4 flex items-center gap-3">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t("learn.title")}</h1>
+        <h1 className="text-xl font-bold text-text-primary">{t("learn.title")}</h1>
         <div className="ml-auto">
           <select
             value={selectedCategoryId}
             onChange={(e) => setSelectedCategoryId(e.target.value)}
-            className="rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-1.5 text-sm outline-none"
+            className="rounded-xl border border-border-default bg-surface-elevated px-3 py-1.5 text-sm outline-none"
           >
             <option value="">{t("learn.allMode")}</option>
             {categories?.map((cat) => (
@@ -291,7 +291,7 @@ export default function LearnPage() {
 
       <div className="mb-6 flex flex-col gap-3">
         <div
-          className="grid grid-cols-2 overflow-hidden rounded-lg border border-gray-300 bg-white p-1 dark:border-neutral-700 dark:bg-neutral-900"
+          className="grid grid-cols-2 overflow-hidden rounded-lg border border-border-default bg-surface-elevated p-1"
           role="radiogroup"
           aria-label={t("learn.mode")}
         >
@@ -306,7 +306,7 @@ export default function LearnPage() {
                 "min-h-10 rounded-md px-3 text-sm font-medium transition-colors",
                 mode === nextMode
                   ? "bg-emerald-500 text-white shadow-sm"
-                  : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-neutral-800"
+                  : "text-text-secondary hover:bg-black/[0.06] dark:text-text-tertiary"
               )}
             >
               {nextMode === "flashcard" ? t("learn.modeFlashcard") : t("learn.modeChoice")}
@@ -315,12 +315,12 @@ export default function LearnPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+          <label className="flex items-center gap-2 text-xs text-text-secondary">
             <span className="shrink-0">{t("learn.problemCount")}</span>
             <select
               value={problemLimit ?? "all"}
               onChange={(e) => setProblemLimit(e.target.value === "all" ? null : Number(e.target.value))}
-              className="flex-1 rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm outline-none dark:border-neutral-700 dark:bg-neutral-900"
+              className="flex-1 rounded-lg border border-border-default bg-surface-elevated px-2 py-1.5 text-sm outline-none"
             >
               {PROBLEM_LIMIT_OPTIONS.map((v) => (
                 <option key={v ?? "all"} value={v ?? "all"}>
@@ -329,12 +329,12 @@ export default function LearnPage() {
               ))}
             </select>
           </label>
-          <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+          <label className="flex items-center gap-2 text-xs text-text-secondary">
             <span className="shrink-0">{t("learn.timer")}</span>
             <select
               value={timerSeconds}
               onChange={(e) => setTimerSeconds(Number(e.target.value))}
-              className="flex-1 rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm outline-none dark:border-neutral-700 dark:bg-neutral-900"
+              className="flex-1 rounded-lg border border-border-default bg-surface-elevated px-2 py-1.5 text-sm outline-none"
             >
               {TIMER_OPTIONS.map((v) => (
                 <option key={v} value={v}>

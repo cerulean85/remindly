@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { deleteObjectByUrl } from "@/lib/s3"
 import { sanitizeStageInput } from "@/lib/learningStages"
+import { mirrorKeywords } from "@/lib/mirrorKeywords"
 import { withAuth } from "@/lib/withAuth"
 import { LEARNING_STAGE_KEYS } from "@/types"
 
@@ -41,20 +42,43 @@ export const PATCH = withAuth<RouteCtx>(async (req, { userId, params }) => {
       if (parsed !== undefined) stageData[key] = parsed
     }
 
-    const problem = await prisma.problem.update({
-      where: { id },
-      data: {
-        ...(question?.trim() && { question: question.trim() }),
-        ...(answer?.trim() && { answer: answer.trim() }),
-        ...(Array.isArray(keywords) && { keywords }),
-        ...(nextImages && { images: nextImages }),
-        categoryId: categoryId !== undefined ? categoryId || null : undefined,
-        ...stageData,
-      },
-      include: { category: true },
+    const problem = await prisma.$transaction(async (tx) => {
+      const updated = await tx.problem.update({
+        where: { id },
+        data: {
+          ...(question?.trim() && { question: question.trim() }),
+          ...(answer?.trim() && { answer: answer.trim() }),
+          ...(Array.isArray(keywords) && { keywords }),
+          ...(nextImages && { images: nextImages }),
+          categoryId: categoryId !== undefined ? categoryId || null : undefined,
+          ...stageData,
+        },
+        include: { category: true },
+      })
+
+      if (Array.isArray(keywords)) {
+        const oldSet = new Set(owned.keywords)
+        const newSet = new Set<string>(keywords)
+        const added = [...newSet].filter((k) => !oldSet.has(k))
+        const removedKeywords = [...oldSet].filter((k) => !newSet.has(k))
+        if (added.length > 0 || removedKeywords.length > 0) {
+          await mirrorKeywords({
+            sourceProblemId: updated.id,
+            sourceTitle: updated.question,
+            userId,
+            added,
+            removed: removedKeywords,
+            tx,
+          })
+        }
+      }
+
+      return updated
     })
 
     if (nextImages) {
+      // S3 deletes happen after the transaction commits — they can't be
+      // rolled back if a mirror were to fail, so we run them last.
       const removed = owned.images.filter((u) => !nextImages.includes(u))
       await Promise.all(removed.map((u) => deleteObjectByUrl(u)))
     }

@@ -70,6 +70,7 @@
     "keywords": "관련 키워드",
     "keywordsPlaceholder": "키워드 입력 후 Enter 또는 쉼표",
     "frequentlyUsed": "자주 사용",
+    "suggestionFromProblem": "등록된 주제",
     "category": "카테고리",
     "noCategory": "카테고리 없음",
     "save": "저장",
