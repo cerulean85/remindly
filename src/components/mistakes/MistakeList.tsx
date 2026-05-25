@@ -3,28 +3,21 @@
 import Link from "next/link"
 import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import type { MistakeRecord, Problem } from "@/types"
+import type { MistakeRecord, Problem, ViewMode } from "@/types"
 import { CategoryBadge } from "@/components/categories/CategoryBadge"
 import { Badge } from "@/components/ui/Badge"
 import { TrophyIcon } from "@/components/ui/Icons"
 import { ProblemDetailSheet } from "@/components/problems/ProblemDetailSheet"
 import { Button } from "@/components/ui/Button"
+import { ConfirmModal } from "@/components/ui/Modal"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
-
-type ViewMode = "grid" | "list"
 
 interface Props {
   mistakes: MistakeRecord[]
   viewMode: ViewMode
   onDelete: (recordId: string) => void
-}
-
-async function readJson<T>(response: Response): Promise<T> {
-  const data = await response.json()
-  if (!response.ok) throw new Error(data?.error ?? "Request failed")
-  return data
 }
 
 function formatDate(value: string) {
@@ -44,12 +37,16 @@ export function MistakeList({ mistakes, viewMode, onDelete }: Props) {
   const [content, setContent] = useState("")
 
   const updateMutation = useMutation({
-    mutationFn: (record: MistakeRecord) =>
-      fetch(`/api/mistake-records/${record.id}`, {
+    mutationFn: async (record: MistakeRecord) => {
+      const response = await fetch(`/api/mistake-records/${record.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content }),
-      }).then((r) => readJson<MistakeRecord>(r)),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data?.error ?? "Request failed")
+      return data as MistakeRecord
+    },
     onSuccess: () => {
       setEditingRecord(null)
       setContent("")
@@ -195,6 +192,13 @@ export function MistakeList({ mistakes, viewMode, onDelete }: Props) {
       <ProblemDetailSheet
         problem={detailTarget}
         onClose={() => setDetailTarget(null)}
+        onSwitchProblem={async (pid) => {
+          const fresh = await queryClient.fetchQuery<Problem>({
+            queryKey: ["problem", pid],
+            queryFn: () => fetch(`/api/problems/${pid}`).then((r) => r.json()),
+          })
+          setDetailTarget(fresh)
+        }}
       />
 
       {editingRecord && (
@@ -223,29 +227,14 @@ export function MistakeList({ mistakes, viewMode, onDelete }: Props) {
         </div>
       )}
 
-      {confirmId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="mx-4 w-full max-w-sm rounded-lg bg-surface-overlay p-6 shadow-popover">
-            <p className="text-sm font-medium text-text-primary mb-4">
-              {t("mistakes.deleteConfirm")}
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setConfirmId(null)}
-                className="rounded-lg border border-border-default px-4 py-2 text-sm text-text-secondary transition-colors hover:bg-surface-base dark:text-text-tertiary"
-              >
-                {t("mistakes.cancel")}
-              </button>
-              <button
-                onClick={handleConfirmDelete}
-                className="rounded-lg bg-red-500 px-4 py-2 text-sm text-white transition-colors hover:bg-red-600"
-              >
-                {t("mistakes.delete")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={!!confirmId}
+        onClose={() => setConfirmId(null)}
+        onConfirm={handleConfirmDelete}
+        title={t("mistakes.delete")}
+        description={t("mistakes.deleteConfirm")}
+        confirmLabel={t("mistakes.delete")}
+      />
     </>
   )
 }

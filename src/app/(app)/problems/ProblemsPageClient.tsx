@@ -10,10 +10,16 @@ import { ConfirmModal } from "@/components/ui/Modal"
 import { ProblemDetailSheet } from "@/components/problems/ProblemDetailSheet"
 import { LearningProgressBar } from "@/components/problems/LearningProgressBar"
 import { CategoryBadge } from "@/components/categories/CategoryBadge"
+import { CategoryFilterBar } from "@/components/categories/CategoryFilterBar"
 import { Badge } from "@/components/ui/Badge"
-import { ProblemsPageSkeleton } from "@/components/ui/Skeleton"
+import {
+  ProblemsPageSkeleton,
+  ProblemCardSkeleton,
+  ProblemRowSkeleton,
+} from "@/components/ui/Skeleton"
+import { ViewModeToggle } from "@/components/ui/ViewModeToggle"
 import { ProblemsIcon, SearchIcon } from "@/components/ui/Icons"
-import type { Category, Problem, UserSettings } from "@/types"
+import type { Category, Problem, UserSettings, ViewMode } from "@/types"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
@@ -35,7 +41,6 @@ const SORT_OPTIONS: Array<{ key: SortKey; labelKey: string }> = [
   { key: "lastStudiedAt:asc", labelKey: "problems.sortStale" },
 ]
 
-type ViewMode = "grid" | "list"
 const VIEW_MODES: readonly ViewMode[] = ["grid", "list"]
 const VIEW_STORAGE_KEY = "problems.viewMode"
 
@@ -403,90 +408,15 @@ export function ProblemsPageClient() {
             {t("problems.resetFilters")}
           </button>
         )}
-        <div className="shrink-0 flex rounded-full border border-border-default bg-surface-elevated overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setViewMode("grid")}
-            aria-label={t("problems.viewGrid")}
-            title={t("problems.viewGrid")}
-            className={cn(
-              "px-3 py-2 text-sm transition-colors",
-              viewMode === "grid"
-                ? "bg-emerald-500 text-white"
-                : "text-text-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
-            )}
-          >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-              <rect x="3" y="3" width="7" height="7" rx="1" />
-              <rect x="14" y="3" width="7" height="7" rx="1" />
-              <rect x="3" y="14" width="7" height="7" rx="1" />
-              <rect x="14" y="14" width="7" height="7" rx="1" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode("list")}
-            aria-label={t("problems.viewList")}
-            title={t("problems.viewList")}
-            className={cn(
-              "px-3 py-2 text-sm transition-colors",
-              viewMode === "list"
-                ? "bg-emerald-500 text-white"
-                : "text-text-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
-            )}
-          >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-              <line x1="4" y1="6" x2="20" y2="6" />
-              <line x1="4" y1="12" x2="20" y2="12" />
-              <line x1="4" y1="18" x2="20" y2="18" />
-            </svg>
-          </button>
-        </div>
+        <ViewModeToggle mode={viewMode} onChange={setViewMode} />
       </div>
 
-      {categories.length > 0 && (
-        <div className="mb-5 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-          <button
-            onClick={() => setSelectedCategoryId(null)}
-            className={cn(
-              "shrink-0 rounded-full px-3 py-1 text-xs font-medium border transition-colors",
-              selectedCategoryId === null
-                ? "bg-emerald-500 text-white border-emerald-500"
-                : "border-border-default text-text-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
-            )}
-          >
-            {t("problems.allCategories")}
-          </button>
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategoryId(cat.id)}
-              className={cn(
-                "shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium border transition-colors",
-                selectedCategoryId === cat.id
-                  ? "bg-emerald-500 text-white border-emerald-500"
-                  : "border-border-default text-text-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
-              )}
-            >
-              <span
-                className="h-2 w-2 rounded-full shrink-0"
-                style={{ backgroundColor: selectedCategoryId === cat.id ? "white" : cat.color }}
-              />
-              {cat.name}
-              {cat._count !== undefined && (
-                <span className={cn(
-                  "rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none",
-                  selectedCategoryId === cat.id
-                    ? "bg-white/20 text-white"
-                    : "bg-black/[0.06] dark:bg-white/[0.08] text-text-tertiary"
-                )}>
-                  {cat._count.problems}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
+      <CategoryFilterBar
+        categories={categories}
+        selectedId={selectedCategoryId}
+        onSelect={setSelectedCategoryId}
+        showCounts
+      />
 
       {isEmpty ? (
         <div className="flex flex-col items-center justify-center py-20 text-center text-text-secondary">
@@ -536,7 +466,19 @@ export function ProblemsPageClient() {
           <div ref={sentinelRef} className="h-10" />
 
           {isFetchingNextPage && (
-            <div className="py-4 text-center text-sm text-text-tertiary">{t("common.loading")}</div>
+            viewMode === "list" ? (
+              <div className="flex flex-col gap-2 pt-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <ProblemRowSkeleton key={i} />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 pt-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <ProblemCardSkeleton key={i} />
+                ))}
+              </div>
+            )
           )}
 
           {!hasNextPage && items.length > 0 && (
@@ -560,6 +502,13 @@ export function ProblemsPageClient() {
         onClose={() => setDetailTarget(null)}
         onEdit={goToEdit}
         onDelete={setDeleteTarget}
+        onSwitchProblem={async (pid) => {
+          const fresh = await queryClient.fetchQuery<Problem>({
+            queryKey: ["problem", pid],
+            queryFn: () => fetch(`/api/problems/${pid}`).then((r) => r.json()),
+          })
+          setDetailTarget(fresh)
+        }}
       />
     </div>
   )

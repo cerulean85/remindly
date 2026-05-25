@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/Button"
 import { ConfirmModal, Modal } from "@/components/ui/Modal"
+import { MistakeRecordListSkeleton } from "@/components/ui/Skeleton"
 import type { MistakeRecord, Problem } from "@/types"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
@@ -142,7 +143,7 @@ export function MistakeRecordModal({
             </div>
 
             {recordsQuery.isLoading ? (
-              <p className="py-8 text-center text-sm text-text-secondary">{t("common.loading")}</p>
+              <MistakeRecordListSkeleton />
             ) : recordsQuery.data?.length ? (
               <ul className="max-h-[50vh] space-y-3 overflow-y-auto pr-1">
                 {recordsQuery.data.map((record) => (

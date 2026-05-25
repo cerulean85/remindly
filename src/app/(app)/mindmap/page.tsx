@@ -17,6 +17,8 @@ const MindmapGraph = dynamic(
   { ssr: false },
 )
 import { ProblemDetailSheet } from "@/components/problems/ProblemDetailSheet"
+import { MindmapGraphSkeleton } from "@/components/ui/Skeleton"
+import { useProblem } from "@/hooks/useProblem"
 import {
   applyKeywordConnection,
   applyKeywordDisconnect,
@@ -49,11 +51,7 @@ export default function MindmapPage() {
     queryFn: () => fetch("/api/mindmap").then((r) => r.json()),
   })
 
-  const { data: detailProblem } = useQuery<Problem>({
-    queryKey: ["problem", selectedProblemId],
-    queryFn: () => fetchProblem(selectedProblemId!),
-    enabled: !!selectedProblemId,
-  })
+  const { data: detailProblem } = useProblem(selectedProblemId)
 
   // Build a placeholder Problem from the already-loaded graph node so the
   // sheet opens immediately on click. The real fetch enriches it shortly after.
@@ -245,11 +243,7 @@ export default function MindmapPage() {
         className="relative flex-1"
         style={{ background: resolvedTheme === "dark" ? BG_DARK : BG_LIGHT }}
       >
-        {isLoading && (
-          <p className="absolute inset-0 flex items-center justify-center text-sm text-text-tertiary">
-            {t("common.loading")}
-          </p>
-        )}
+        {isLoading && <MindmapGraphSkeleton />}
         {error && (
           <p className="absolute inset-0 flex items-center justify-center text-sm text-red-500">
             {String(error)}

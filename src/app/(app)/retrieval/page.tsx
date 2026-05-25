@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ProblemDetailSheet } from "@/components/problems/ProblemDetailSheet"
 import { ConfirmModal, Modal } from "@/components/ui/Modal"
+import { RetrievalCalendarSkeleton } from "@/components/ui/Skeleton"
+import { useProblem } from "@/hooks/useProblem"
 import { cn } from "@/lib/utils"
 import type { Problem } from "@/types"
 import { useTranslation } from "react-i18next"
@@ -66,11 +68,7 @@ export default function RetrievalPage() {
   const [deleteTarget, setDeleteTarget] = useState<Problem | null>(null)
   const goToEdit = (p: Problem) => router.push(`/problems/${p.id}/edit`)
 
-  const { data: detailProblem } = useQuery<Problem>({
-    queryKey: ["problem", detailId],
-    queryFn: () => fetch(`/api/problems/${detailId}`).then((r) => r.json()),
-    enabled: !!detailId,
-  })
+  const { data: detailProblem } = useProblem(detailId)
 
   const { data, isLoading } = useQuery<CalendarResponse>({
     queryKey: ["retrieval-calendar", year, month],
@@ -107,6 +105,10 @@ export default function RetrievalPage() {
   const goNext = () => {
     if (month === 12) { setYear(year + 1); setMonth(1) }
     else setMonth(month + 1)
+  }
+
+  if (isLoading && !data) {
+    return <RetrievalCalendarSkeleton />
   }
 
   return (
@@ -182,9 +184,6 @@ export default function RetrievalPage() {
           <span className="text-red-500 dark:text-red-400">E = Empty</span>
         </div>
 
-        {isLoading && (
-          <div className="mt-4 text-center text-sm text-text-tertiary">{t("common.loading")}</div>
-        )}
       </div>
 
       <Modal
@@ -231,6 +230,7 @@ export default function RetrievalPage() {
         onClose={() => setDetailId(null)}
         onEdit={goToEdit}
         onDelete={setDeleteTarget}
+        onSwitchProblem={setDetailId}
       />
 
       <ConfirmModal

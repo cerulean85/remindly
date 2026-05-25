@@ -74,6 +74,8 @@ export interface StudyLogEntry {
   problem?: Problem
 }
 
+export type ViewMode = "grid" | "list"
+
 export interface MistakeRecord {
   id: string
   problemId: string

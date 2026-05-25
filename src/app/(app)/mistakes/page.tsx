@@ -1,17 +1,19 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { MistakeList } from "@/components/mistakes/MistakeList"
 import { MistakesPageSkeleton } from "@/components/ui/Skeleton"
+import { ViewModeToggle } from "@/components/ui/ViewModeToggle"
+import { CategoryFilterBar } from "@/components/categories/CategoryFilterBar"
 import { SearchIcon } from "@/components/ui/Icons"
-import type { Category, MistakeRecord } from "@/types"
-import { cn } from "@/lib/utils"
+import type { Category, MistakeRecord, ViewMode } from "@/types"
+import { useLocalStorageState, enumSerializer } from "@/hooks/useLocalStorageState"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
-type ViewMode = "grid" | "list"
+const VIEW_MODES: readonly ViewMode[] = ["grid", "list"]
 const VIEW_STORAGE_KEY = "mistakes.viewMode"
 
 export default function MistakesPage() {
@@ -19,26 +21,11 @@ export default function MistakesPage() {
   const queryClient = useQueryClient()
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const [search, setSearch] = useState("")
-  const [viewMode, setViewMode] = useState<ViewMode>("grid")
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    const stored = window.localStorage.getItem(VIEW_STORAGE_KEY)
-    if (stored !== "grid" && stored !== "list") return
-
-    let active = true
-    queueMicrotask(() => {
-      if (active) setViewMode(stored)
-    })
-    return () => {
-      active = false
-    }
-  }, [])
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    window.localStorage.setItem(VIEW_STORAGE_KEY, viewMode)
-  }, [viewMode])
+  const [viewMode, setViewMode] = useLocalStorageState<ViewMode>(
+    VIEW_STORAGE_KEY,
+    "grid",
+    enumSerializer(VIEW_MODES),
+  )
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["categories"],
@@ -95,80 +82,14 @@ export default function MistakesPage() {
                 className="h-11 w-full rounded-full border border-border-default bg-surface-elevated pl-9 pr-3 text-sm text-text-primary outline-none placeholder:text-text-tertiary focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
               />
             </div>
-            <div className="flex shrink-0 overflow-hidden rounded-full border border-border-default bg-surface-elevated">
-              <button
-                type="button"
-                onClick={() => setViewMode("grid")}
-                aria-label={t("problems.viewGrid")}
-                title={t("problems.viewGrid")}
-                className={cn(
-                  "px-3 py-2 text-sm transition-colors",
-                  viewMode === "grid"
-                    ? "bg-emerald-500 text-white"
-                    : "text-text-secondary hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.06]"
-                )}
-              >
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                  <rect x="3" y="3" width="7" height="7" rx="1" />
-                  <rect x="14" y="3" width="7" height="7" rx="1" />
-                  <rect x="3" y="14" width="7" height="7" rx="1" />
-                  <rect x="14" y="14" width="7" height="7" rx="1" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("list")}
-                aria-label={t("problems.viewList")}
-                title={t("problems.viewList")}
-                className={cn(
-                  "px-3 py-2 text-sm transition-colors",
-                  viewMode === "list"
-                    ? "bg-emerald-500 text-white"
-                    : "text-text-secondary hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.06]"
-                )}
-              >
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                  <line x1="4" y1="6" x2="20" y2="6" />
-                  <line x1="4" y1="12" x2="20" y2="12" />
-                  <line x1="4" y1="18" x2="20" y2="18" />
-                </svg>
-              </button>
-            </div>
+            <ViewModeToggle mode={viewMode} onChange={setViewMode} />
           </div>
 
-          {categories.length > 0 && (
-            <div className="mb-5 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-              <button
-                onClick={() => setSelectedCategoryId(null)}
-                className={cn(
-                  "shrink-0 rounded-full px-3 py-1 text-xs font-medium border transition-colors",
-                  selectedCategoryId === null
-                    ? "bg-emerald-500 text-white border-emerald-500"
-                    : "border-border-default text-text-secondary hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.06]"
-                )}
-              >
-                {t("problems.allCategories")}
-              </button>
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategoryId(cat.id)}
-                  className={cn(
-                    "shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium border transition-colors",
-                    selectedCategoryId === cat.id
-                      ? "bg-emerald-500 text-white border-emerald-500"
-                      : "border-border-default text-text-secondary hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.06]"
-                  )}
-                >
-                  <span
-                    className="h-2 w-2 rounded-full shrink-0"
-                    style={{ backgroundColor: selectedCategoryId === cat.id ? "white" : cat.color }}
-                  />
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-          )}
+          <CategoryFilterBar
+            categories={categories}
+            selectedId={selectedCategoryId}
+            onSelect={setSelectedCategoryId}
+          />
 
           <MistakeList
             mistakes={mistakes ?? []}

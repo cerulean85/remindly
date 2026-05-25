@@ -4,6 +4,7 @@ import { use } from "react"
 import { useRouter } from "next/navigation"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ProblemEditorPage } from "@/components/problems/ProblemEditorPage"
+import { ProblemEditorSkeleton } from "@/components/ui/Skeleton"
 import type { Problem } from "@/types"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
@@ -47,11 +48,7 @@ export default function EditProblemPage({ params }: PageProps) {
   })
 
   if (isLoading) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-6 text-sm text-text-tertiary">
-        {t("common.loading")}
-      </div>
-    )
+    return <ProblemEditorSkeleton />
   }
   if (isError || !problem) {
     return (

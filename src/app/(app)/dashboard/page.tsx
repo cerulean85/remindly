@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
 import { Modal } from "@/components/ui/Modal"
 import { ProblemDetailSheet } from "@/components/problems/ProblemDetailSheet"
+import { DashboardSkeleton, TrendChartSkeleton } from "@/components/ui/Skeleton"
+import { useProblem } from "@/hooks/useProblem"
 import { cn } from "@/lib/utils"
-import type { Problem } from "@/types"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
@@ -126,11 +127,7 @@ export default function DashboardPage() {
   const [period, setPeriod] = useState<Period>("daily")
   const [detailId, setDetailId] = useState<string | null>(null)
 
-  const { data: detailProblem } = useQuery<Problem>({
-    queryKey: ["problem", detailId],
-    queryFn: () => fetch(`/api/problems/${detailId}`).then((r) => r.json()),
-    enabled: !!detailId,
-  })
+  const { data: detailProblem } = useProblem(detailId)
 
   const { data: dash, isLoading: dashLoading } = useQuery<DashboardData>({
     queryKey: ["dashboard"],
@@ -143,11 +140,7 @@ export default function DashboardPage() {
   })
 
   if (dashLoading || !dash) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-6">
-        <div className="text-sm text-text-tertiary">{t("common.loading")}</div>
-      </div>
-    )
+    return <DashboardSkeleton />
   }
 
   const { summary, byLevel, priority, settings } = dash
@@ -231,9 +224,7 @@ export default function DashboardPage() {
           className="block w-full text-left rounded-xl p-2 -mx-2 hover:bg-black/[0.04] dark:hover:bg-surface-elevated/[0.04] transition-colors"
         >
           {trendLoading || !trend ? (
-            <div className="h-40 flex items-center justify-center text-sm text-text-tertiary">
-              {t("common.loading")}
-            </div>
+            <TrendChartSkeleton />
           ) : (
             <>
               <TrendChart buckets={trend.buckets} />
@@ -296,6 +287,7 @@ export default function DashboardPage() {
       <ProblemDetailSheet
         problem={detailId && detailProblem?.id === detailId ? detailProblem : null}
         onClose={() => setDetailId(null)}
+        onSwitchProblem={setDetailId}
       />
 
       <Modal

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button"
 import { ConfirmModal } from "@/components/ui/Modal"
 import { MarkdownPreview } from "@/components/notes/MarkdownPreview"
 import { PreviewToggleIcon, SearchIcon, SidebarToggleIcon, XIcon } from "@/components/ui/Icons"
+import { NoteListSkeleton } from "@/components/ui/Skeleton"
 import { uploadImage } from "@/lib/uploadImage"
 import { cn } from "@/lib/utils"
 import {
@@ -316,7 +317,9 @@ export default function NotesPage() {
 
         <div className="flex-1 overflow-y-auto px-2 pb-3">
           {isLoading ? (
-            <div className="p-4 text-sm text-text-tertiary">{t("common.loading")}</div>
+            <div className="px-2">
+              <NoteListSkeleton />
+            </div>
           ) : isEmptyList ? (
             <div className="p-4 text-sm text-text-tertiary text-center">
               {debouncedSearch ? t("notes.noSearchResults") : t("notes.noNotes")}

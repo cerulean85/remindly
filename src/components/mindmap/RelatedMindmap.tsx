@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 import type { ProblemMindmap } from "@/lib/mindmap"
+import { MindmapGraphSkeleton } from "@/components/ui/Skeleton"
 
 // react-force-graph-2d touches window at module scope, so MindmapGraph must
 // be loaded client-only to avoid breaking SSR/prerender.
@@ -51,11 +52,7 @@ export function RelatedMindmap({ problemId, onSwitchProblem }: RelatedMindmapPro
         className="relative h-60 w-full overflow-hidden rounded-xl border border-border-default"
         style={{ background: resolvedTheme === "dark" ? BG_DARK : BG_LIGHT }}
       >
-        {isLoading && (
-          <p className="absolute inset-0 flex items-center justify-center text-xs text-text-tertiary">
-            {t("common.loading")}
-          </p>
-        )}
+        {isLoading && <MindmapGraphSkeleton />}
         {error && (
           <p className="absolute inset-0 flex items-center justify-center text-xs text-red-500">
             {String(error)}
