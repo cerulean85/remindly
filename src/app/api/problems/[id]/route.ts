@@ -30,10 +30,28 @@ export const PATCH = withAuth<RouteCtx>(async (req, { userId, params }) => {
 
   try {
     const body = await req.json()
-    const { question, answer, keywords, categoryId, images } = body
+    const { question, answer, keywords, categoryId, images, addKeyword, removeKeyword } = body
     const nextImages = Array.isArray(images)
       ? images.filter((u: unknown) => typeof u === "string")
       : undefined
+
+    // Single-keyword add/remove: derive the next keywords array from the
+    // current owned record so the client can skip a pre-fetch.
+    let effectiveKeywords: string[] | undefined =
+      Array.isArray(keywords) ? keywords : undefined
+    if (effectiveKeywords === undefined) {
+      const norm = (s: string) => s.trim().toLowerCase()
+      if (typeof addKeyword === "string" && addKeyword.trim()) {
+        const kw = addKeyword.trim()
+        if (!owned.keywords.some((k) => norm(k) === norm(kw))) {
+          effectiveKeywords = [...owned.keywords, kw]
+        }
+      } else if (typeof removeKeyword === "string" && removeKeyword.trim()) {
+        const target = norm(removeKeyword)
+        const next = owned.keywords.filter((k) => norm(k) !== target)
+        if (next.length !== owned.keywords.length) effectiveKeywords = next
+      }
+    }
 
     const stageData: Partial<Record<(typeof LEARNING_STAGE_KEYS)[number], boolean>> = {}
     for (const key of LEARNING_STAGE_KEYS) {
@@ -48,7 +66,7 @@ export const PATCH = withAuth<RouteCtx>(async (req, { userId, params }) => {
         data: {
           ...(question?.trim() && { question: question.trim() }),
           ...(answer?.trim() && { answer: answer.trim() }),
-          ...(Array.isArray(keywords) && { keywords }),
+          ...(effectiveKeywords && { keywords: effectiveKeywords }),
           ...(nextImages && { images: nextImages }),
           categoryId: categoryId !== undefined ? categoryId || null : undefined,
           ...stageData,
@@ -56,9 +74,9 @@ export const PATCH = withAuth<RouteCtx>(async (req, { userId, params }) => {
         include: { category: true },
       })
 
-      if (Array.isArray(keywords)) {
+      if (effectiveKeywords) {
         const oldSet = new Set(owned.keywords)
-        const newSet = new Set<string>(keywords)
+        const newSet = new Set<string>(effectiveKeywords)
         const added = [...newSet].filter((k) => !oldSet.has(k))
         const removedKeywords = [...oldSet].filter((k) => !newSet.has(k))
         if (added.length > 0 || removedKeywords.length > 0) {

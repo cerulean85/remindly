@@ -3,10 +3,26 @@
 import { useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
+import dynamic from "next/dynamic"
 import { useTheme } from "next-themes"
-import { MindmapGraph, type MindmapMode } from "@/components/mindmap/MindmapGraph"
+import type { MindmapMode } from "@/components/mindmap/MindmapGraph"
+
+// react-force-graph-2d touches window at module scope, so MindmapGraph must
+// be a client-only bundle.
+const MindmapGraph = dynamic(
+  () =>
+    import("@/components/mindmap/MindmapGraph").then((m) => ({
+      default: m.MindmapGraph,
+    })),
+  { ssr: false },
+)
 import { ProblemDetailSheet } from "@/components/problems/ProblemDetailSheet"
-import { applyKeywordConnection, type MindmapData, type MindmapNode } from "@/lib/mindmap"
+import {
+  applyKeywordConnection,
+  applyKeywordDisconnect,
+  type MindmapData,
+  type MindmapNode,
+} from "@/lib/mindmap"
 import type { Problem } from "@/types"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
@@ -71,25 +87,21 @@ export default function MindmapPage() {
     })
   }
 
+  // Optimistic mindmap edits: we never refetch ["mindmap"] on settle — the
+  // optimistic patch is authoritative for what's on screen. Sibling caches
+  // (problem detail, list, keywords) are invalidated so other surfaces catch
+  // up in the background; their timing doesn't need to match the UI.
   const connectMutation = useMutation({
     mutationFn: async ({ problemId, keyword }: { problemId: string; keyword: string }) => {
-      const current = await fetchProblem(problemId)
-      const existing = current.keywords ?? []
-      const normalized = keyword.trim().toLowerCase()
-      if (existing.some((k) => k.trim().toLowerCase() === normalized)) return current
-      const next = [...existing, keyword.trim()]
       const r = await fetch(`/api/problems/${problemId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ keywords: next }),
+        body: JSON.stringify({ addKeyword: keyword.trim() }),
       })
       if (!r.ok) throw new Error(await r.text())
       return r.json() as Promise<Problem>
     },
-    onMutate: async ({ problemId, keyword }) => {
-      // Patch the mindmap cache eagerly so the new link appears in the same
-      // frame as the second click; the server round-trip catches up later.
-      await queryClient.cancelQueries({ queryKey: ["mindmap"] })
+    onMutate: ({ problemId, keyword }) => {
       const previous = queryClient.getQueryData<MindmapData>(["mindmap"])
       if (previous) {
         queryClient.setQueryData<MindmapData>(
@@ -104,11 +116,45 @@ export default function MindmapPage() {
         queryClient.setQueryData(["mindmap"], ctx.previous)
       }
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["mindmap"] })
+    onSettled: (_data, _err, { problemId }) => {
       queryClient.invalidateQueries({ queryKey: ["problem-mindmap"] })
       queryClient.invalidateQueries({ queryKey: ["problems"] })
-      queryClient.invalidateQueries({ queryKey: ["problem"] })
+      queryClient.invalidateQueries({ queryKey: ["problem", problemId] })
+      queryClient.invalidateQueries({ queryKey: ["keywords"] })
+    },
+  })
+
+  // mirrorKeywords on the server applies the inverse change to the matched
+  // problem automatically, so a single PATCH is enough for either direction.
+  const disconnectMutation = useMutation({
+    mutationFn: async ({ problemId, keyword }: { problemId: string; keyword: string }) => {
+      const r = await fetch(`/api/problems/${problemId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ removeKeyword: keyword.trim() }),
+      })
+      if (!r.ok) throw new Error(await r.text())
+      return r.json() as Promise<Problem>
+    },
+    onMutate: ({ problemId, keyword }) => {
+      const previous = queryClient.getQueryData<MindmapData>(["mindmap"])
+      if (previous) {
+        queryClient.setQueryData<MindmapData>(
+          ["mindmap"],
+          applyKeywordDisconnect(previous, problemId, keyword),
+        )
+      }
+      return { previous }
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) {
+        queryClient.setQueryData(["mindmap"], ctx.previous)
+      }
+    },
+    onSettled: (_data, _err, { problemId }) => {
+      queryClient.invalidateQueries({ queryKey: ["problem-mindmap"] })
+      queryClient.invalidateQueries({ queryKey: ["problems"] })
+      queryClient.invalidateQueries({ queryKey: ["problem", problemId] })
       queryClient.invalidateQueries({ queryKey: ["keywords"] })
     },
   })
@@ -134,6 +180,28 @@ export default function MindmapPage() {
     connectMutation.mutate({ problemId, keyword })
   }
 
+  const handleDisconnect = (source: MindmapNode, target: MindmapNode) => {
+    const sIsProblem = source.type === "problem"
+    const tIsProblem = target.type === "problem"
+    if (!sIsProblem && !tIsProblem) return // keyword ↔ keyword: shouldn't exist
+
+    // mirrorKeywords on the server propagates the change to the other side,
+    // so a single PATCH suffices even for problem ↔ problem links.
+    let problemId: string
+    let keyword: string
+    if (sIsProblem && tIsProblem) {
+      problemId = source.problemId
+      keyword = target.label
+    } else if (sIsProblem) {
+      problemId = source.problemId
+      keyword = (target as Extract<MindmapNode, { type: "keyword" }>).keyword
+    } else {
+      problemId = (target as Extract<MindmapNode, { type: "problem" }>).problemId
+      keyword = (source as Extract<MindmapNode, { type: "keyword" }>).keyword
+    }
+    disconnectMutation.mutate({ problemId, keyword })
+  }
+
   return (
     <div className="relative flex h-full flex-col">
       <header className="flex items-center justify-between gap-3 border-b border-border-subtle px-4 py-3 md:px-6">
@@ -142,21 +210,25 @@ export default function MindmapPage() {
         </h1>
         <div className="flex items-center gap-3">
           <div className="flex rounded-full border border-border-default bg-surface-elevated overflow-hidden text-xs">
-            {(["move", "connect"] as const).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setMode(m)}
-                className={cn(
-                  "px-3 py-1 transition-colors",
-                  mode === m
-                    ? "bg-emerald-500 text-white"
-                    : "text-text-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]",
-                )}
-              >
-                {t(`mindmap.mode.${m}`)}
-              </button>
-            ))}
+            {(["move", "connect", "disconnect"] as const).map((m) => {
+              const activeColor =
+                m === "disconnect" ? "bg-rose-500" : "bg-emerald-500"
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setMode(m)}
+                  className={cn(
+                    "px-3 py-1 transition-colors",
+                    mode === m
+                      ? `${activeColor} text-white`
+                      : "text-text-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]",
+                  )}
+                >
+                  {t(`mindmap.mode.${m}`)}
+                </button>
+              )
+            })}
           </div>
           {data && (
             <p className="text-xs text-text-secondary">
@@ -195,6 +267,7 @@ export default function MindmapPage() {
             onProblemHover={handleProblemHover}
             mode={mode}
             onConnect={handleConnect}
+            onDisconnect={handleDisconnect}
           />
         )}
       </div>

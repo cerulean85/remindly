@@ -104,7 +104,7 @@ export function buildMindmapGraph(problems: ProblemForGraph[]): MindmapData {
   return { nodes, links }
 }
 
-function endpointId(end: MindmapLink["source"]): string | null {
+export function endpointId(end: MindmapLink["source"]): string | null {
   if (typeof end === "string") return end
   if (end && typeof end === "object" && "id" in end) {
     const v = (end as { id?: unknown }).id
@@ -156,27 +156,86 @@ export function applyKeywordConnection(
   if (linkExists(sourceId, kwId)) return data
 
   const existingKw = data.nodes.find((n) => n.id === kwId)
-  const nodes: MindmapNode[] =
-    existingKw && existingKw.type === "keyword"
-      ? data.nodes.map((n) =>
-          n.id === kwId && n.type === "keyword"
-            ? { ...n, degree: n.degree + 1 }
-            : n,
-        )
-      : [
-          ...data.nodes,
-          {
-            id: kwId,
-            type: "keyword",
-            keyword,
-            label: keyword,
-            degree: 1,
-          },
-        ]
+  if (existingKw && existingKw.type === "keyword") {
+    // Bump degree in place: react-force-graph rewrites link source/target to
+    // object references pointing at this node, so swapping it for a new object
+    // would orphan every other problem still linked to this keyword.
+    existingKw.degree += 1
+    return {
+      nodes: data.nodes,
+      links: [...data.links, { source: kwId, target: sourceId }],
+    }
+  }
   return {
-    nodes,
+    nodes: [
+      ...data.nodes,
+      {
+        id: kwId,
+        type: "keyword",
+        keyword,
+        label: keyword,
+        degree: 1,
+      },
+    ],
     links: [...data.links, { source: kwId, target: sourceId }],
   }
+}
+
+// Inverse of applyKeywordConnection: remove the link a (problemId, keyword)
+// pair contributed. Drops a problem ↔ problem link if the keyword matches
+// another problem's title, otherwise drops the problem ↔ keyword link and
+// either decrements the keyword's degree or removes the now-orphan keyword
+// node. Returns the input unchanged if no matching link is present.
+export function applyKeywordDisconnect(
+  data: MindmapData,
+  problemId: string,
+  rawKeyword: string,
+): MindmapData {
+  const keyword = rawKeyword.trim()
+  if (!keyword) return data
+  const sourceId = problemNodeId(problemId)
+  const nk = norm(keyword)
+
+  const matchedProblem = data.nodes.find(
+    (n) => n.type === "problem" && n.id !== sourceId && norm(n.label) === nk,
+  )
+
+  if (matchedProblem) {
+    const filteredLinks = data.links.filter((l) => {
+      const s = endpointId(l.source)
+      const t = endpointId(l.target)
+      return !(
+        (s === sourceId && t === matchedProblem.id) ||
+        (s === matchedProblem.id && t === sourceId)
+      )
+    })
+    if (filteredLinks.length === data.links.length) return data
+    return { nodes: data.nodes, links: filteredLinks }
+  }
+
+  const kwId = keywordNodeId(keyword)
+  const filteredLinks = data.links.filter((l) => {
+    const s = endpointId(l.source)
+    const t = endpointId(l.target)
+    return !(
+      (s === sourceId && t === kwId) || (s === kwId && t === sourceId)
+    )
+  })
+  if (filteredLinks.length === data.links.length) return data
+
+  // Decrement degree in place to preserve the keyword node's reference
+  // identity — other links still point at this exact object. We never
+  // remove the keyword node here even if it becomes an orphan; the
+  // subsequent invalidate from onSettled will reconcile that. Removing
+  // a node optimistically destabilizes the running force simulation and
+  // can fling nearby nodes off-canvas.
+  const existingKw = data.nodes.find(
+    (n) => n.id === kwId && n.type === "keyword",
+  )
+  if (existingKw && existingKw.type === "keyword") {
+    existingKw.degree = Math.max(1, existingKw.degree - 1)
+  }
+  return { nodes: data.nodes, links: filteredLinks }
 }
 
 // Extract the subgraph within `maxHops` of `focusedNodeId`. Keyword-node

@@ -225,7 +225,8 @@
     "noRelated": "이 주제와 키워드를 공유하는 다른 주제가 없습니다.",
     "mode": {
       "move": "이동",
-      "connect": "연결"
+      "connect": "연결",
+      "disconnect": "끊기"
     }
   },
   "common": {

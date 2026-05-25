@@ -1,11 +1,21 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import { useTheme } from "next-themes"
 import { useQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
-import { MindmapGraph } from "@/components/mindmap/MindmapGraph"
 import type { ProblemMindmap } from "@/lib/mindmap"
+
+// react-force-graph-2d touches window at module scope, so MindmapGraph must
+// be loaded client-only to avoid breaking SSR/prerender.
+const MindmapGraph = dynamic(
+  () =>
+    import("@/components/mindmap/MindmapGraph").then((m) => ({
+      default: m.MindmapGraph,
+    })),
+  { ssr: false },
+)
 
 const BG_LIGHT =
   "radial-gradient(ellipse at center, #ffffff 0%, #f1f5f9 60%, #e2e8f0 100%)"

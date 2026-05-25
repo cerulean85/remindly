@@ -225,7 +225,8 @@
     "noRelated": "No other problems share keywords with this one.",
     "mode": {
       "move": "Move",
-      "connect": "Connect"
+      "connect": "Connect",
+      "disconnect": "Disconnect"
     }
   },
   "common": {
