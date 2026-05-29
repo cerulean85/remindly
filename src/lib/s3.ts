@@ -13,7 +13,7 @@ export const s3 = new S3Client({
   },
 })
 
-export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"]
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024
 
 export function buildImageKey(userId: string, ext: string): string {

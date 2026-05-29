@@ -412,7 +412,7 @@ export default function NotesPage() {
               <input
                 ref={imageInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif"
+                accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
                 multiple
                 className="hidden"
                 onChange={(e) => handleImageFiles(e.target.files)}
