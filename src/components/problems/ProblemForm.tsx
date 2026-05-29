@@ -147,7 +147,7 @@ export function ProblemForm({
     setBaseline(currentState)
   }
 
-  const handleFiles = async (files: FileList | null) => {
+  const handleFiles = async (files: FileList | File[] | null | undefined) => {
     if (!files || files.length === 0) return
     setUploadError(null)
     setUploading(true)
@@ -166,6 +166,17 @@ export function ProblemForm({
     }
   }
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = Array.from(e.clipboardData?.items ?? [])
+    const imageFiles = items
+      .filter((it) => it.kind === "file" && it.type.startsWith("image/"))
+      .map((it) => it.getAsFile())
+      .filter((f): f is File => f !== null)
+    if (imageFiles.length === 0) return
+    e.preventDefault()
+    handleFiles(imageFiles)
+  }
+
   const removeImage = (url: string) => {
     setImages((prev) => prev.filter((u) => u !== url))
   }
@@ -179,6 +190,7 @@ export function ProblemForm({
         <textarea
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
+          onPaste={handlePaste}
           required
           rows={3}
           className="w-full rounded-xl border border-border-default bg-surface-elevated px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400 resize-none"
