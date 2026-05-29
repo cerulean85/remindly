@@ -218,7 +218,6 @@ export function ProblemForm({
         <textarea
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          onPaste={handlePaste}
           required
           rows={3}
           className="w-full rounded-xl border border-border-default bg-surface-elevated px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-400 resize-none"
