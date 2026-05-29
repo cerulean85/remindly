@@ -166,15 +166,43 @@ export function ProblemForm({
     }
   }
 
-  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     const items = Array.from(e.clipboardData?.items ?? [])
     const imageFiles = items
       .filter((it) => it.kind === "file" && it.type.startsWith("image/"))
       .map((it) => it.getAsFile())
       .filter((f): f is File => f !== null)
-    if (imageFiles.length === 0) return
+    if (imageFiles.length > 0) {
+      e.preventDefault()
+      handleFiles(imageFiles)
+      return
+    }
+
+    // Right-click → copy image from a webpage sometimes ships only the HTML
+    // markup (no raw bytes). Pull the first <img src> out and fetch it so
+    // the upload pipeline still gets a real File. CORS can block this; we
+    // surface the failure rather than silently dropping the paste.
+    const html = e.clipboardData?.getData("text/html") ?? ""
+    const url = html.match(/<img\b[^>]*\bsrc=["']([^"']+)["']/i)?.[1]
+    if (!url) return
+
     e.preventDefault()
-    handleFiles(imageFiles)
+    setUploadError(null)
+    setUploading(true)
+    try {
+      const res = await fetch(url)
+      if (!res.ok) throw new Error(`Failed to fetch image (${res.status})`)
+      const blob = await res.blob()
+      if (!blob.type.startsWith("image/")) throw new Error("Clipboard did not contain an image")
+      const ext = blob.type.split("/")[1] || "png"
+      const file = new File([blob], `pasted-${Date.now()}.${ext}`, { type: blob.type })
+      const uploadedUrl = await uploadImage(file)
+      setImages((prev) => [...prev, uploadedUrl])
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setUploading(false)
+    }
   }
 
   const removeImage = (url: string) => {
