@@ -252,6 +252,7 @@ export function ProblemForm({
           <textarea
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
+            onPaste={handlePaste}
             required
             rows={14}
             placeholder="Markdown"
