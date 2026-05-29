@@ -11,8 +11,8 @@ const ZERO_WIDTH_SPACE = "\u200B"
 
 export function normalizeEssayMarkdown(markdown: string) {
   return markdown
-    .replace(/([^\s*])\*\*((?:'|\u2019)[^*\n]*?)\*\*/g, `$1${ZERO_WIDTH_SPACE}**$2**`)
-    .replace(/\*\*((?:['\u2019"][^*\n]*?['\u2019"]))\*\*(?=[\p{L}\p{N}_])/gu, `**$1**${ZERO_WIDTH_SPACE}`)
+    .replace(/([^\s*])\*\*((?:['\u2019"\u201c\u201d])[^*\n]*?)\*\*/g, `$1${ZERO_WIDTH_SPACE}**$2**`)
+    .replace(/\*\*((?:['\u2019"\u201c\u201d][^*\n]*?['\u2019"\u201c\u201d]))\*\*(?=[\p{L}\p{N}_])/gu, `**$1**${ZERO_WIDTH_SPACE}`)
 }
 
 function preserveExtraBlankLines(markdown: string) {
