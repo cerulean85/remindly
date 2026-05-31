@@ -124,12 +124,12 @@ export function FlashCard({
           >
             <p className="mb-3 shrink-0 text-sm font-medium text-emerald-500 dark:text-emerald-400">설명</p>
             <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-              <MarkdownPreview content={problem.answer} className="text-base" />
               {problem.images.length > 0 && (
-                <div className="mt-4">
+                <div className="mb-4">
                   <ImageGallery images={problem.images} />
                 </div>
               )}
+              <MarkdownPreview content={problem.answer} className="text-base" />
               {problem.keywords.length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-1.5">
                   {problem.keywords.map((kw) => (
