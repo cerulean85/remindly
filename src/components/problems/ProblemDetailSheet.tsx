@@ -151,6 +151,11 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete, onSwitc
 
           {/* Scrollable content */}
           <div className="overflow-y-auto px-6 pb-8 pt-4 flex flex-col gap-5">
+            {/* Images — shown at the top when registered */}
+            {problem && problem.images.length > 0 && (
+              <ImageGallery images={problem.images} size="inline" />
+            )}
+
             {/* Category */}
             {problem?.category && (
               <div>
@@ -177,11 +182,6 @@ export function ProblemDetailSheet({ problem, onClose, onEdit, onDelete, onSwitc
                   content={problem.answer}
                   className="text-sm text-text-primary"
                 />
-              )}
-              {problem && problem.images.length > 0 && (
-                <div className="mt-4">
-                  <ImageGallery images={problem.images} size="inline" />
-                </div>
               )}
             </div>
 
