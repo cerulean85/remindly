@@ -61,6 +61,10 @@
   "problems": {
     "title": "주제 관리",
     "add": "주제 추가",
+    "export": "엑셀로 추출",
+    "exporting": "추출 중...",
+    "exportEmpty": "추출할 주제가 없습니다.",
+    "exportFailed": "추출에 실패했습니다.",
     "edit": "주제 수정",
     "delete": "주제 삭제",
     "detail": "주제 상세",

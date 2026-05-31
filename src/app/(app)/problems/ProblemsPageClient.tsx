@@ -220,6 +220,7 @@ export function ProblemsPageClient() {
   const queryClient = useQueryClient()
   const [detailTarget, setDetailTarget] = useState<Problem | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Problem | null>(null)
+  const [isExporting, setIsExporting] = useState(false)
   const goToEdit = (p: Problem) => router.push(`/problems/${p.id}/edit`)
 
   // Filters are hydrated from the URL on mount and mirrored back to the URL on
@@ -345,19 +346,63 @@ export function ProblemsPageClient() {
     setSortKey(DEFAULT_SORT_KEY)
   }
 
+  // Export the current filtered view to a CSV that Excel opens directly, so
+  // topics can be reviewed offline.
+  const handleExport = async () => {
+    if (isExporting) return
+    if (totalCount === 0) {
+      alert(t("problems.exportEmpty"))
+      return
+    }
+    setIsExporting(true)
+    try {
+      const params = new URLSearchParams()
+      if (selectedCategoryId) params.set("categoryId", selectedCategoryId)
+      if (debouncedSearch) params.set("search", debouncedSearch)
+      const qs = params.toString()
+      const res = await fetch(`/api/problems/export${qs ? `?${qs}` : ""}`)
+      if (!res.ok) throw new Error("export failed")
+      const blob = await res.blob()
+      const disposition = res.headers.get("Content-Disposition") ?? ""
+      const filename = /filename="([^"]+)"/.exec(disposition)?.[1] ?? "remindly_topics.csv"
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch {
+      alert(t("problems.exportFailed"))
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   const isSearching = debouncedSearch.length > 0
   const hasActiveFilters = selectedCategoryId !== null || isSearching || searchInput.trim().length > 0 || sortKey !== DEFAULT_SORT_KEY
   const isEmpty = items.length === 0
 
   return (
     <div className="mx-auto max-w-lg sm:max-w-3xl lg:max-w-5xl xl:max-w-7xl px-4 py-6">
-      <div className="mb-4 flex items-center">
+      <div className="mb-4 flex items-center gap-2">
         <h1 className="text-xl font-bold text-text-primary">{t("problems.title")}</h1>
-        <Link href="/problems/new" className="ml-auto">
-          <Button size="sm">
-            + {t("problems.add")}
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleExport}
+            disabled={isExporting || totalCount === 0}
+          >
+            {isExporting ? t("problems.exporting") : t("problems.export")}
           </Button>
-        </Link>
+          <Link href="/problems/new">
+            <Button size="sm">
+              + {t("problems.add")}
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="mb-3 flex flex-wrap gap-2">

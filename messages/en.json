@@ -61,6 +61,10 @@
   "problems": {
     "title": "Problem Management",
     "add": "Add Problem",
+    "export": "Export to Excel",
+    "exporting": "Exporting...",
+    "exportEmpty": "No topics to export.",
+    "exportFailed": "Export failed.",
     "edit": "Edit Problem",
     "delete": "Delete Problem",
     "detail": "Problem Details",
